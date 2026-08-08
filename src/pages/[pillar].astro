@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { pillars } from '../data/pillars';
+
+export function getStaticPaths() {
+  return pillars.map((p) => ({ params: { pillar: p.slug }, props: { p } }));
+}
+
+const { p } = Astro.props;
+---
+
+<Layout title={`${p.title} — CoversFlow`} description={p.blurb}>
+  <article class="pillar-page">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="kicker">Pillar {p.n}</p>
+    <h1>{p.title}</h1>
+    <p class="lead">{p.blurb}</p>
+    <ul class="tags">
+      {p.tags.map((t) => <li>{t}</li>)}
+    </ul>
+    <p class="placeholder">Full pillar content coming soon.</p>
+    <a href="/" class="back">← Back to the diner</a>
+  </article>
+</Layout>
+
+<style>
+  .pillar-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .kicker {
+    margin: 0 0 var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+  h1 { margin: 0 0 var(--s-4); font-size: var(--step-3); }
+  .lead { margin: 0 0 var(--s-5); font-size: var(--step-1); color: var(--ink-2); }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-2);
+    margin: 0 0 var(--s-6);
+    padding: 0;
+    list-style: none;
+  }
+  .tags li {
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm);
+    color: var(--ink-2);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+  }
+
+  .placeholder { color: var(--ink-3); font-size: var(--step--1); }
+  .back { color: var(--rust); text-decoration: none; font-size: var(--step--1); }
+  .back:hover { text-decoration: underline; text-underline-offset: 4px; }
+</style>

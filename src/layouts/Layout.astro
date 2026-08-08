@@ -1,0 +1,90 @@
+---
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '../styles/tokens.css';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'CoversFlow — SEO for hospitality',
+  description = 'CoversFlow is an SEO agency for restaurants and hospitality. Six places to look, all of them in one room.',
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <div class="site">
+    <header class="site-header">
+      <a href="/" class="wordmark">
+        <span class="mark mark--inline" aria-hidden="true"><i></i><i></i><i></i></span>
+        Covers<em>Flow</em>
+      </a>
+    </header>
+    <slot />
+    <footer class="site-footer">
+      <p>CoversFlow — SEO for hospitality</p>
+      <p class="site-footer__meta">Somebody is always open.</p>
+    </footer>
+    </div>
+  </body>
+</html>
+
+<style>
+  /* Everything lives in a centered column; past 1600px the paper ground
+     grows as side margins so ultra-wide windows don't stretch the layout. */
+  .site { max-width: 1600px; margin: 0 auto; }
+
+  /* 62px header height is load-bearing: NighthawksHero's stage max-width
+     calc assumes it. Change both together or the hero over/undershoots. */
+  .site-header {
+    height: 62px;
+    display: flex;
+    align-items: center;
+    padding: 0 var(--s-5);
+    background: var(--paper);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .wordmark {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .wordmark em { font-style: normal; color: var(--rust); }
+  .mark--inline { margin-bottom: 0; }
+
+  .site-footer {
+    background: var(--night);
+    color: var(--paper-2);
+    padding: var(--s-6) var(--s-5);
+  }
+  .site-footer p { margin: 0; font-size: var(--step--1); }
+  .site-footer__meta {
+    color: var(--lamp);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-caps);
+    font-size: 11px;
+    margin-top: var(--s-2);
+  }
+</style>

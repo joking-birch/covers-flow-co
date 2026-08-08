@@ -1,0 +1,260 @@
+---
+/**
+ * NighthawksHero.astro — interactive painting hero for CoversFlow.co
+ *
+ * Ships zero framework JS: hover/focus state is one dataset write, all visual
+ * change is CSS. Drop in src/components/, put the painting in src/assets/,
+ * import tokens.css once from your layout.
+ *
+ * Geometry contract (IMPORTANT): every % below is a percentage of the STAGE
+ * BOX, and the stage box is locked to the painting's 16:9 ratio. If you let
+ * the box drift off-ratio, object-fit:cover crops the image and every hotspot
+ * points at the wrong paint. Do not add max-height to .stage.
+ */
+import { Image } from 'astro:assets';
+import painting from '../assets/nighthawks.jpg';
+
+const pillars = [
+  {
+    id: 'sign', n: '01', title: 'Brand Visibility', href: '/brand-visibility',
+    blurb: 'The sign is what the street reads first. Own the name before anyone types a keyword.',
+    tags: ['Branded SERP', 'AI answer engines', 'Entity & knowledge panel'],
+    clip: 'polygon(31.2% 0%, 90.8% 0.2%, 90.8% 4.2%, 31.2% 15.7%)',
+    svg: '<polygon points="31.2,0 90.8,0.2 90.8,4.2 31.2,15.7" />',
+    origin: '61% 0%', bubble: { left: '44%', top: '15.5%' }, card: { left: '32%', top: '23%' },
+  },
+  {
+    id: 'street', n: '02', title: 'Competitive Gaps', href: '/competitive-gaps',
+    blurb: 'The rooms across the street went dark. We map what they stopped ranking for, and take it.',
+    tags: ['Keyword gap audit', 'Content teardown', 'Market share of search'],
+    clip: 'inset(25% 68.5% 38% 0% round 0 8px 8px 0)',
+    svg: '<rect x="-1" y="25" width="32.5" height="37" />',
+    origin: '8% 43%', bubble: { left: '12%', top: '38%' }, card: { left: '34%', top: '30%' },
+  },
+  {
+    id: 'alone', n: '03', title: 'Discovery', href: '/discovery',
+    blurb: "The guest with his back turned hasn't found you yet. Everything upstream of the booking.",
+    tags: ['Near-me intent', 'Editorial & guides', 'Digital PR'],
+    clip: 'ellipse(7.5% 16% at 54.5% 60%)',
+    svg: '<ellipse cx="54.5" cy="60" rx="7.5" ry="16" />',
+    origin: '54.5% 60%', bubble: { left: '54.5%', top: '78%' }, card: { right: '55%', bottom: '7%' },
+  },
+  {
+    id: 'couple', n: '04', title: 'Community', href: '/community',
+    blurb: 'Two people at the same counter, a world apart. Closing that gulf is the work.',
+    tags: ['Review conversations', 'Events & partnerships', 'Local link earning'],
+    clip: 'ellipse(6.6% 10.5% at 70.3% 53%)',
+    svg: '<ellipse cx="70.3" cy="53" rx="6.6" ry="10.5" />',
+    origin: '70.3% 53%', bubble: { left: '70.3%', top: '38%' }, card: { right: '39%', top: '30%' },
+  },
+  {
+    id: 'counter', n: '05', title: 'Front of House', href: '/front-of-house',
+    blurb: 'The counterman is the whole service. Every surface a guest touches on the way in.',
+    tags: ['Google Business Profile', 'Booking flow', 'Location pages'],
+    clip: 'ellipse(6.8% 16% at 85.5% 57%)',
+    svg: '<ellipse cx="85.5" cy="57" rx="6.8" ry="16" />',
+    origin: '85.5% 57%', bubble: { left: '85.5%', top: '80%' }, card: { right: '25%', bottom: '7%' },
+  },
+  {
+    id: 'door', n: '06', title: 'Back of House', href: '/back-of-house',
+    blurb: 'Behind the door: the plumbing nobody sees and everything depends on.',
+    tags: ['Menu & recipe schema', 'Site architecture', 'Core Web Vitals'],
+    clip: 'ellipse(4.2% 18% at 93.5% 47%)',
+    svg: '<ellipse cx="93.5" cy="47" rx="4.2" ry="18" />',
+    origin: '93.5% 47%', bubble: { left: '92%', top: '24%' }, card: { right: '12.5%', bottom: '7%' },
+  },
+];
+
+const pos = (o) => Object.entries(o).map(([k, v]) => `${k}:${v}`).join(';');
+
+/* Per-hotspot rules. Static, but generated so geometry lives in ONE place. */
+const css = pillars.map(p => `
+  .pop--${p.id} { transform-origin: ${p.origin}; }
+  .pop--${p.id} .pop__clip { clip-path: ${p.clip}; }
+  .bubble--${p.id} { ${pos(p.bubble)}; }
+  .card--${p.id}   { ${pos(p.card)}; }
+  .stage[data-active="${p.id}"] .pop--${p.id} { opacity: 1; transform: scale(var(--pop-scale)); }
+  .stage[data-active="${p.id}"] .pop--${p.id} .pop__clip { pointer-events: auto; }
+  .stage[data-active="${p.id}"] .card--${p.id} { opacity: 1; transform: translateY(0); pointer-events: auto; }
+`).join('\n');
+---
+
+<section class="hero">
+  <div class="stage" data-stage>
+    <div class="base"><Image src={painting} alt="Nighthawks by Edward Hopper" widths={[1200, 1800, 2400]} sizes="100vw" /></div>
+
+    {pillars.map(p => (
+      <div class={`pop pop--${p.id}`} aria-hidden="true">
+        <div class="pop__clip"><Image src={painting} alt="" widths={[1200, 1800, 2400]} sizes="100vw" /></div>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="pop__outline" set:html={p.svg} />
+      </div>
+    ))}
+
+    <div class="bubbles">
+      {pillars.map(p => (
+        <a href={p.href} class={`bubble bubble--${p.id}`} data-hotspot={p.id}>
+          <span class="bubble__ring">{p.n}<span class="bubble__orbit"></span></span>
+          <span class="bubble__label">{p.title}</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="cards">
+      {pillars.map(p => (
+        <div class={`card card--${p.id}`}>
+          <p class="card__head"><span class="card__n">{p.n}</span> {p.title}</p>
+          <p class="card__blurb">{p.blurb}</p>
+          <ul class="card__tags">{p.tags.map(t => <li>{t}</li>)}</ul>
+          <a href={p.href} class="card__cta">Open the pillar →</a>
+        </div>
+      ))}
+    </div>
+
+    <div class="intro">
+      <h1>Somebody is always open.</h1>
+      <p>CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</p>
+      <p class="intro__hint">Hover a figure to look closer</p>
+    </div>
+  </div>
+</section>
+
+<style is:global set:html={css}></style>
+
+<style>
+  .hero { background: var(--night); }
+
+  /* Locked to the painting's ratio — see geometry contract above. */
+  .stage {
+    position: relative; margin: 0 auto; overflow: hidden;
+    width: 100%; max-width: calc((100vh - 62px) * 16 / 9); aspect-ratio: 16 / 9;
+    --blur: 7px; --pop-scale: 1.12;
+  }
+  .base, .pop { position: absolute; inset: 0; }
+  .base :global(img), .pop :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .base { transition: filter var(--dur) ease; }
+  .stage[data-active] .base { filter: blur(var(--blur)) saturate(.55) brightness(.5); }
+
+  .pop {
+    z-index: 10; opacity: 0; pointer-events: none; transform: scale(1);
+    transition: transform .55s var(--ease), opacity .35s ease, filter var(--dur) ease;
+  }
+  .pop__clip { position: absolute; inset: 0; }
+  .stage[data-active] .pop[style], .stage[data-active] .pop { filter: none; }
+  .stage[data-active] .pop.is-on { filter: drop-shadow(0 18px 34px rgb(0 0 0 / .75)); }
+  .pop__outline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .pop__outline :global(*) {
+    fill: none; stroke: var(--paper); stroke-width: 1.5px;
+    stroke-dasharray: 6 3 2 3; stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    animation: march 1.9s linear infinite;
+  }
+  @keyframes march { from { stroke-dashoffset: 0 } to { stroke-dashoffset: -28 } }
+
+  /* pointer-events: none so the full-stage layer doesn't sit on top of the
+     cutout's hit area — only the bubbles themselves catch the mouse. */
+  .bubbles { position: absolute; inset: 0; z-index: 20; pointer-events: none; }
+  .bubble {
+    position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
+    display: flex; flex-direction: column; align-items: center; gap: 7px;
+    text-decoration: none; color: var(--paper); font-family: var(--font-body);
+  }
+  .bubble:hover, .bubble:focus-visible { color: var(--lamp); }
+  .bubble:focus-visible { outline: 2px solid var(--lamp); outline-offset: 6px; border-radius: 4px; }
+  .bubble__ring {
+    position: relative; display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px dashed rgb(243 238 228 / .6); background: rgb(22 40 60 / .3);
+    backdrop-filter: blur(3px);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+  }
+  .bubble__orbit {
+    position: absolute; inset: -6px; border-radius: 50%;
+    border: 1px dashed var(--ochre); opacity: .65;
+    animation: spin 26s linear infinite;
+  }
+  .bubble--street .bubble__orbit { animation-delay: -4s }
+  .bubble--alone  .bubble__orbit { animation-delay: -8s }
+  .bubble--couple .bubble__orbit { animation-delay: -12s }
+  .bubble--counter .bubble__orbit { animation-delay: -16s }
+  .bubble--door   .bubble__orbit { animation-delay: -20s }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  .bubble__label {
+    font-size: 10.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase;
+    white-space: nowrap; padding: 2px 6px; border-radius: var(--radius-sm);
+    background: rgb(22 40 60 / .6);
+  }
+
+  .cards { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+  .card {
+    position: absolute; width: 296px; padding: var(--s-4);
+    background: rgb(22 40 60 / .93); border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm); color: var(--paper);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .3s ease, transform var(--dur) var(--ease);
+  }
+  .card__head { margin: 0 0 6px; font-family: var(--font-display); font-size: 19px; letter-spacing: var(--tracking-tight); }
+  .card__n { font-family: var(--font-mono); font-size: 11px; color: var(--ochre); letter-spacing: .1em; margin-right: 4px; }
+  .card__blurb { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--paper-2); text-wrap: pretty; }
+  .card__tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 12px; padding: 0; list-style: none; }
+  .card__tags li {
+    font-size: 10.5px; padding: 3px 8px; border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm); color: var(--paper-2);
+    text-transform: uppercase; letter-spacing: .07em;
+  }
+  .card__cta { font-size: 12.5px; color: var(--lamp); text-decoration: none; border-bottom: 1px solid transparent; }
+  .card__cta:hover { border-bottom-color: var(--lamp); }
+
+  .intro {
+    position: absolute; left: 4%; bottom: 7%; z-index: 35; pointer-events: none;
+    max-width: 330px; transition: opacity .35s ease, transform var(--dur) ease;
+  }
+  .stage[data-active] .intro { opacity: 0; transform: translateY(10px); }
+  .intro h1 {
+    margin: 0 0 10px; font-family: var(--font-display); font-size: var(--step-4);
+    line-height: 1.02; letter-spacing: var(--tracking-tight); max-width: 9ch;
+    color: var(--paper); text-shadow: 0 2px 24px rgb(0 0 0 / .85);
+  }
+  .intro p { margin: 0 0 6px; font-size: 14.5px; color: var(--paper-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9); }
+  .intro__hint { font-size: 11.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--ochre); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bubble__orbit, .pop__outline :global(*) { animation: none; }
+    .pop, .base, .card, .intro { transition-duration: .01ms; }
+  }
+  /* Below the ratio where hotspots stay legible, drop the painting to a flat
+     backdrop and let the pillar grid below the hero carry navigation. */
+  @media (max-width: 780px), (hover: none) {
+    .bubbles, .cards, .pop { display: none; }
+    .intro { position: static; padding: var(--s-6) var(--s-5); max-width: 40ch; }
+  }
+</style>
+
+<script>
+  const stage = document.querySelector('[data-stage]');
+  if (stage) {
+    /* The active hotspot's bubble, surfaced cutout and card form ONE hover
+       zone (the clip-path also clips hit-testing, so the cutout only catches
+       the mouse inside its shape). Leaving the zone dismisses after a grace
+       delay; entering any bubble switches immediately. */
+    const LINGER_MS = 400;
+    let timer = null;
+    const cancel = () => { clearTimeout(timer); timer = null; };
+    const set = (v) => { cancel(); v ? stage.dataset.active = v : delete stage.dataset.active; };
+    const linger = () => { cancel(); timer = setTimeout(() => set(null), LINGER_MS); };
+
+    stage.querySelectorAll('[data-hotspot]').forEach((el) => {
+      const id = el.dataset.hotspot;
+      el.addEventListener('pointerenter', () => set(id));
+      el.addEventListener('focus', () => set(id));
+      el.addEventListener('pointerleave', linger);
+    });
+    stage.querySelectorAll('.pop__clip, .card').forEach((el) => {
+      el.addEventListener('pointerenter', cancel);
+      el.addEventListener('pointerleave', linger);
+    });
+    stage.addEventListener('pointerleave', linger);
+    stage.addEventListener('focusout', (e) => {
+      if (!stage.contains(e.relatedTarget)) set(null);
+    });
+  }
+</script>

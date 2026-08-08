@@ -1,17 +1,82 @@
 ---
-
+import Layout from '../layouts/Layout.astro';
+import NighthawksHero from '../components/NighthawksHero.astro';
+import { pillars } from '../data/pillars';
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
-</html>
+<Layout>
+  <NighthawksHero />
+
+  <section class="pillars">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>Six places to look</h2>
+    <ol class="pillars__grid">
+      {pillars.map((p) => (
+        <li>
+          <a href={`/${p.slug}`} class="pillar">
+            <span class="pillar__n">{p.n}</span>
+            <span class="pillar__title">{p.title}</span>
+            <span class="pillar__blurb">{p.blurb}</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+</Layout>
+
+<style>
+  .pillars {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .pillars h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .pillars__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-5);
+  }
+  @media (max-width: 900px) { .pillars__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .pillars__grid { grid-template-columns: 1fr; } }
+
+  .pillar {
+    display: block;
+    height: 100%;
+    padding: var(--s-4);
+    border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .pillar:hover, .pillar:focus-visible { border-color: var(--rust); }
+  .pillar:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .pillar__n {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--ochre);
+    margin-bottom: var(--s-2);
+  }
+  .pillar__title {
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: var(--s-2);
+  }
+  .pillar:hover .pillar__title { text-decoration: underline; text-decoration-color: var(--rust); text-underline-offset: 4px; }
+  .pillar__blurb {
+    display: block;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+</style>

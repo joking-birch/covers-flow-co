@@ -1,0 +1,67 @@
+/* CoversFlow.co — design tokens
+   Palette: mid-century poster / Soviet-cover register (warm paper, black ink,
+   rust + ochre marks, olive and night-blue grounds). Drop into
+   src/styles/tokens.css and import once from your base layout. */
+
+:root {
+  /* ── Paper & ink ─────────────────────────────────────────────── */
+  --paper:        #F3EEE4; /* page ground — warm off-white newsprint */
+  --paper-2:      #E7E0D1; /* alternate band / card ground */
+  --paper-3:      #D8CFBC; /* rules, dividers, disabled */
+  --ink:          #1B1A18; /* headings, body — never pure black */
+  --ink-2:        #46423C; /* secondary text */
+  --ink-3:        #756E64; /* captions, meta */
+
+  /* ── Marks (use as line, block and small field — not as page floods) ── */
+  --rust:         #A8431E; /* primary accent: CTAs, active state, rules */
+  --rust-deep:    #7E3116; /* pressed */
+  --ochre:        #C08B2C; /* secondary accent: numerals, dots, highlights */
+  --olive:        #3B4232; /* dark ground option, tags */
+  --signal:       #C8362A; /* rare: alerts, one word in a headline */
+
+  /* ── Night grounds (bridge to the painting) ──────────────────── */
+  --night:        #16283C; /* hero surround, footer */
+  --night-2:      #22384F; /* raised surface on night */
+  --diner-glass:  #2E5C55; /* teal edge accents, focus rings on night */
+  --lamp:         #E8DFA8; /* the diner's lit ceiling — glow, highlights */
+
+  /* ── Type ────────────────────────────────────────────────────── */
+  --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-body:    "Inter", system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace; /* numerals, kickers */
+
+  --step--1: 0.8125rem;  /* 13px  captions */
+  --step-0:  1rem;       /* 16px  body */
+  --step-1:  1.25rem;    /* 20px  lead */
+  --step-2:  1.75rem;    /* 28px  h3 */
+  --step-3:  2.5rem;     /* 40px  h2 */
+  --step-4:  3.75rem;    /* 60px  h1 — poster scale, tight tracking */
+
+  --tracking-tight: -0.03em;
+  --tracking-caps:  0.14em;
+
+  /* ── Space, radii, motion ────────────────────────────────────── */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px;
+  --s-5: 24px; --s-6: 32px; --s-7: 48px; --s-8: 72px;
+
+  --radius-sm: 2px;   /* the poster look is squared — keep radii minimal */
+  --radius-md: 4px;
+
+  --ease: cubic-bezier(.2,.8,.2,1);
+  --dur-fast: .25s;
+  --dur: .45s;
+}
+
+/* Usage notes
+   ─ Page: --paper ground, --ink text. The hero is the one --night field.
+   ─ Accents are LINES, RULES and SMALL BLOCKS: a 3-bar rust/ochre/ink mark
+     above a heading, a rust underline on hover, an ochre numeral. Never a
+     full-width rust section (the Jurassic Park poster uses one rust band —
+     at most one per page).
+   ─ Contrast: --ink on --paper 14.8:1; --ink-2 8.1:1; --rust on --paper
+     5.2:1 (fine for headings, buttons, 18px+ — not for 13px body);
+     --paper on --night 12.6:1.
+   ─ Buttons: 1px --ink border on transparent, label in --ink; hover fills
+     --rust with --paper text; pressed --rust-deep.
+   ─ Focus: 2px solid --rust, offset 2px on paper; --lamp on night.
+*/
