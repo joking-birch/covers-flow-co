@@ -1,6 +1,26 @@
 /* Base styles — tokens.css carries the palette; this is structure only. */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* Menu state. Registered so they can be interpolated in calc() — the whole
+   overlay animates off --open, and --h1..--h6 highlight plan rooms on hover.
+   Set on :root by SiteMenu so the header can react too. */
+@property --open { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --mx { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --my { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h1 { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h2 { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h3 { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h4 { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h5 { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --h6 { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+@keyframes menu-drift {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50% { transform: translate(-50%, -50%) scale(1.05); }
+}
+
+body.menu-open { overflow: hidden; }
+
 body {
   margin: 0;
   background: var(--paper);

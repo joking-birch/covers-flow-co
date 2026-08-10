@@ -1,0 +1,39 @@
+<!-- @dsCard group="Spacing" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spacing — CoversFlow</title>
+<link rel="stylesheet" href="../../../styles.css">
+<style>
+  body { margin: 0; padding: var(--s-5); background: var(--paper); color: var(--ink); }
+  h2 { font: 500 var(--step--1) var(--font-mono); letter-spacing: var(--tracking-caps);
+       text-transform: uppercase; color: var(--ink-3); margin: 0 0 var(--s-3); }
+  .step { display: flex; align-items: center; gap: var(--s-3); margin-bottom: var(--s-2); }
+  .bar { background: var(--rust); height: 14px; border-radius: var(--radius-sm); }
+  .step b { font: 500 11px var(--font-mono); width: 52px; }
+  .step span { font: 400 10px var(--font-mono); color: var(--ink-3); }
+  .chips { display: flex; gap: var(--s-4); margin-top: var(--s-5); }
+  .chip { border: 1px solid var(--ink); padding: var(--s-3) var(--s-4);
+          font: 500 11px var(--font-mono); background: var(--paper-2); }
+</style>
+</head>
+<body>
+<div id="root">
+  <h2>Space scale — --s-1 … --s-8</h2>
+  <div class="step"><b>--s-1</b><div class="bar" style="width:4px"></div><span>4px</span></div>
+  <div class="step"><b>--s-2</b><div class="bar" style="width:8px"></div><span>8px</span></div>
+  <div class="step"><b>--s-3</b><div class="bar" style="width:12px"></div><span>12px</span></div>
+  <div class="step"><b>--s-4</b><div class="bar" style="width:16px"></div><span>16px</span></div>
+  <div class="step"><b>--s-5</b><div class="bar" style="width:24px"></div><span>24px</span></div>
+  <div class="step"><b>--s-6</b><div class="bar" style="width:32px"></div><span>32px</span></div>
+  <div class="step"><b>--s-7</b><div class="bar" style="width:48px"></div><span>48px</span></div>
+  <div class="step"><b>--s-8</b><div class="bar" style="width:72px"></div><span>72px</span></div>
+  <h2 style="margin-top: var(--s-5)">Radii — the poster look is squared</h2>
+  <div class="chips" style="margin-top: 0">
+    <div class="chip" style="border-radius: var(--radius-sm)">--radius-sm · 2px</div>
+    <div class="chip" style="border-radius: var(--radius-md)">--radius-md · 4px</div>
+  </div>
+</div>
+</body>
+</html>

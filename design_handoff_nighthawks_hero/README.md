@@ -30,9 +30,15 @@ collections). `Nighthawks Landing.dc.html` is the original prototype, kept for v
 
 ## Fidelity
 **High-fidelity** for the hero: geometry, motion timings and copy are final. The colour palette
-is **not** final — the prototype was built on a dark blue-grey UI theme; `tokens.css` in this
-bundle carries the intended mid-century poster palette that the production site should use.
-Recreate the hero pixel-accurately, then apply `tokens.css` colours throughout.
+is now final too — `Nighthawks Landing.dc.html` has been reskinned onto the mid-century poster
+palette in `tokens.css` and binds to the CoversFlow design system
+(`_ds/coversflow-658cc90c-6a64-4ab3-adde-389acdd1176c/`), replacing the original dark blue-grey
+UI theme it was prototyped on. Geometry, motion timings and copy came through that reskin
+byte-identical — only colour, type and spacing tokens changed.
+
+One thing the reskin had to add rather than swap: the page ground flipped from dark to `--paper`,
+so the root text colour is now `--ink`. Anything sitting on a `--night` field (the pillar cards)
+needs an explicit `color: var(--paper)` — inheriting leaves dark ink on a dark card at ~1.1:1.
 
 ## Screens / views
 

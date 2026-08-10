@@ -1,0 +1,54 @@
+<!-- @dsCard group="Colors" -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Colors — CoversFlow</title>
+<link rel="stylesheet" href="../../../styles.css">
+<style>
+  body { margin: 0; padding: var(--s-5); background: var(--paper); }
+  h2 { font: 500 var(--step--1) var(--font-mono); letter-spacing: var(--tracking-caps);
+       text-transform: uppercase; color: var(--ink-3); margin: 0 0 var(--s-3); }
+  .row { display: flex; gap: var(--s-2); flex-wrap: wrap; margin-bottom: var(--s-5); }
+  .sw { width: 92px; }
+  .chip { height: 44px; border-radius: var(--radius-sm); border: 1px solid var(--paper-3); }
+  .sw b { display: block; font: 500 11px var(--font-mono); color: var(--ink); margin-top: var(--s-1); }
+  .sw span { font: 400 10px var(--font-mono); color: var(--ink-3); }
+  .night-band { background: var(--night); padding: var(--s-4); border-radius: var(--radius-sm); }
+  .night-band h2 { color: var(--lamp); }
+  .night-band .sw b { color: var(--paper); }
+  .night-band .sw span { color: var(--paper-3); }
+  .night-band .chip { border-color: var(--night-2); }
+</style>
+</head>
+<body>
+<div id="root">
+  <h2>Paper &amp; ink</h2>
+  <div class="row">
+    <div class="sw"><div class="chip" style="background:var(--paper)"></div><b>--paper</b><span>#F3EEE4</span></div>
+    <div class="sw"><div class="chip" style="background:var(--paper-2)"></div><b>--paper-2</b><span>#E7E0D1</span></div>
+    <div class="sw"><div class="chip" style="background:var(--paper-3)"></div><b>--paper-3</b><span>#D8CFBC</span></div>
+    <div class="sw"><div class="chip" style="background:var(--ink)"></div><b>--ink</b><span>#1B1A18</span></div>
+    <div class="sw"><div class="chip" style="background:var(--ink-2)"></div><b>--ink-2</b><span>#46423C</span></div>
+    <div class="sw"><div class="chip" style="background:var(--ink-3)"></div><b>--ink-3</b><span>#756E64</span></div>
+  </div>
+  <h2>Marks — lines and small blocks, never floods</h2>
+  <div class="row">
+    <div class="sw"><div class="chip" style="background:var(--rust)"></div><b>--rust</b><span>#A8431E</span></div>
+    <div class="sw"><div class="chip" style="background:var(--rust-deep)"></div><b>--rust-deep</b><span>#7E3116</span></div>
+    <div class="sw"><div class="chip" style="background:var(--ochre)"></div><b>--ochre</b><span>#C08B2C</span></div>
+    <div class="sw"><div class="chip" style="background:var(--olive)"></div><b>--olive</b><span>#3B4232</span></div>
+    <div class="sw"><div class="chip" style="background:var(--signal)"></div><b>--signal</b><span>#C8362A</span></div>
+  </div>
+  <div class="night-band">
+    <h2>Night grounds</h2>
+    <div class="row" style="margin-bottom:0">
+      <div class="sw"><div class="chip" style="background:var(--night)"></div><b>--night</b><span>#16283C</span></div>
+      <div class="sw"><div class="chip" style="background:var(--night-2)"></div><b>--night-2</b><span>#22384F</span></div>
+      <div class="sw"><div class="chip" style="background:var(--diner-glass)"></div><b>--diner-glass</b><span>#2E5C55</span></div>
+      <div class="sw"><div class="chip" style="background:var(--lamp)"></div><b>--lamp</b><span>#E8DFA8</span></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

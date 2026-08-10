@@ -6,6 +6,7 @@ import '@fontsource/inter/500.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
+import SiteMenu from '../components/SiteMenu.astro';
 
 interface Props {
   title?: string;
@@ -34,6 +35,7 @@ const {
         <span class="mark mark--inline" aria-hidden="true"><i></i><i></i><i></i></span>
         Covers<em>Flow</em>
       </a>
+      <SiteMenu />
     </header>
     <slot />
     <footer class="site-footer">
@@ -51,13 +53,19 @@ const {
 
   /* 62px header height is load-bearing: NighthawksHero's stage max-width
      calc assumes it. Change both together or the hero over/undershoots. */
+  /* Sits above the menu overlay (z 50) so the burger stays clickable to
+     close; the rule and wordmark fade out so the header reads as part of
+     the overlay while it's open. */
   .site-header {
+    position: relative;
+    z-index: 60;
     height: 62px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 var(--s-5);
     background: var(--paper);
-    border-bottom: 1px solid var(--paper-3);
+    border-bottom: 1px solid rgb(216 207 188 / calc(1 - var(--open)));
   }
   .wordmark {
     display: flex;
@@ -69,6 +77,8 @@ const {
     letter-spacing: var(--tracking-tight);
     color: var(--ink);
     text-decoration: none;
+    opacity: calc(1 - var(--open));
+    transition: opacity 400ms ease;
   }
   .wordmark em { font-style: normal; color: var(--rust); }
   .mark--inline { margin-bottom: 0; }

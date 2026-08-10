@@ -1,0 +1,556 @@
+---
+/**
+ * SiteMenu.astro — hamburger button + full-bleed plan-drawing menu overlay.
+ *
+ * Ported from the "Animated Menu Backdrop" prototype, recoloured to the
+ * poster palette. Like NighthawksHero, all visual state is CSS: one --open
+ * number on :root drives the whole open/close choreography, --mx/--my carry
+ * mouse parallax, and --h1..--h6 highlight a room on the plan while its nav
+ * item is hovered. The plan is the diner in the hero, drawn in section:
+ * three west rooms, the counter strip, the dining floor, the back door.
+ */
+import { pillars } from '../data/pillars';
+
+/* Plan geometry, all vmin, laid out on a 44 x 26 drawing. */
+const tableCols = [14.6, 18.8, 23, 27.2];
+const tableRows = [7.4, 10.8, 14.2, 17.6, 21];
+const westCols = [2.4, 5.8, 9.2];
+const westRows = [2.6, 10.2, 17.8];
+const doorArcs = [6.2, 14.2, 20.2];
+const counterLines = [14, 15.1, 16.2, 17.3, 18.4, 19.5, 20.6];
+
+/* Section drawing, 44 x 9.2 vmin. */
+const arches = [3.4, 11, 18.6, 26.2, 33.8];
+const colDots = [3, 7.6, 12.2, 16.8, 21.4, 26, 30.6, 35.2, 39.8];
+const stools = Array.from({ length: 16 }, (_, i) => 2.2 + i * 2.5);
+
+/* Rooms, in draw order, each tied to the pillar that lives there. */
+const rooms = [
+  { h: 1, left: 1, top: 1, w: 12, h_: 8, nx: 6.2, ny: 4.4 },
+  { h: 2, left: 1, top: 9.6, w: 12, h_: 7.4, nx: 6.2, ny: 12.4 },
+  { h: 3, left: 1, top: 17.6, w: 12, h_: 7.4, nx: 6.2, ny: 20.4 },
+  { h: 5, left: 13.6, top: 1, w: 17.4, h_: 4.5, nx: 28, ny: 2.4 },
+  { h: 4, left: 13.6, top: 6, w: 17.4, h_: 19, nx: 21, ny: 22.4 },
+  { h: 6, left: 31.6, top: 1, w: 11.4, h_: 11, nx: 37.4, ny: 6 },
+];
+
+const levels = [
+  { top: -14, label: 'Roof', on: false },
+  { top: -6, label: 'The room', on: true },
+  { top: 2, label: 'Street', on: false },
+  { top: 10, label: 'Below', on: false },
+];
+---
+
+<div class="menu">
+  <button
+    class="burger"
+    type="button"
+    data-menu-toggle
+    aria-label="Open menu"
+    aria-expanded="false"
+    aria-controls="site-menu"
+  >
+    <i></i><i></i>
+  </button>
+
+  <div class="sheet" id="site-menu" data-menu-sheet role="dialog" aria-modal="true" aria-label="Site menu">
+    <div class="sheet__zoom">
+      <div class="sheet__inner">
+
+        {/* Light through the diner window: three layers of raked rays. */}
+        <div class="rays">
+          <div class="rays__wide"></div>
+          <div class="rays__fine"></div>
+          <div class="rays__glow"></div>
+        </div>
+
+        {/* Column grids raking off to either side, and the floor's dot tone. */}
+        <div class="colonnade colonnade--l"></div>
+        <div class="colonnade colonnade--r"></div>
+        <div class="floor"></div>
+        <div class="lamp"></div>
+
+        {/* Plan + section drawings, centre stage. */}
+        <div class="plates">
+          <div class="plan">
+            <i class="pw" style="left:0;top:0;width:44vmin;height:1vmin"></i>
+            <i class="pw" style="left:0;top:25vmin;width:44vmin;height:1vmin"></i>
+            <i class="pw" style="left:0;top:1vmin;width:1vmin;height:24vmin"></i>
+            <i class="pw" style="left:43vmin;top:1vmin;width:1vmin;height:24vmin"></i>
+            <i class="pw" style="left:13vmin;top:1vmin;width:0.6vmin;height:24vmin"></i>
+            <i class="pw" style="left:31vmin;top:1vmin;width:0.6vmin;height:24vmin"></i>
+            <i class="pw" style="left:1vmin;top:9vmin;width:12vmin;height:0.6vmin"></i>
+            <i class="pw" style="left:1vmin;top:17vmin;width:12vmin;height:0.6vmin"></i>
+            <i class="pw" style="left:13.6vmin;top:5.5vmin;width:17.4vmin;height:0.5vmin"></i>
+            <i class="pw" style="left:31.6vmin;top:12vmin;width:11.4vmin;height:0.5vmin"></i>
+
+            {/* The counter, and the urns behind it. */}
+            <i class="pfill" style="left:15vmin;top:4.2vmin;width:12vmin;height:1.1vmin"></i>
+            {counterLines.map((t) => (
+              <i class="prule" style={`left:33vmin;top:${t}vmin;width:5vmin`}></i>
+            ))}
+            <i class="pl" style="left:33vmin;top:13.6vmin;width:5vmin;height:8.2vmin"></i>
+            <i class="pdot" style="left:31.9vmin;top:1.4vmin;width:10.6vmin;height:10.2vmin"></i>
+
+            {/* Tables with a chair above and below, four across, five deep. */}
+            {tableRows.map((y) => tableCols.map((x) => (
+              <>
+                <i class="pl" style={`left:${x}vmin;top:${y}vmin;width:2.6vmin;height:1.7vmin`}></i>
+                <i class="pl pl--faint" style={`left:${x + 0.5}vmin;top:${y - 0.9}vmin;width:1.6vmin;height:0.7vmin`}></i>
+                <i class="pl pl--faint" style={`left:${x + 0.5}vmin;top:${y + 1.9}vmin;width:1.6vmin;height:0.7vmin`}></i>
+              </>
+            )))}
+
+            {/* Fittings in the three west rooms. */}
+            {westRows.map((y) => westCols.map((x) => (
+              <i class="pl pl--faint" style={`left:${x}vmin;top:${y}vmin;width:2.4vmin;height:1.4vmin`}></i>
+            )))}
+
+            {doorArcs.map((y) => (
+              <i class="parc" style={`left:13.6vmin;top:${y}vmin`}></i>
+            ))}
+            <i class="parrow" style="left:-2vmin;top:7vmin"></i>
+            <i class="parrow" style="left:-2vmin;top:19vmin"></i>
+
+            {/* Room highlights — lit from the nav on hover. */}
+            {rooms.map((r) => (
+              <>
+                <i
+                  class="proom"
+                  style={`left:${r.left}vmin;top:${r.top}vmin;width:${r.w}vmin;height:${r.h_}vmin;opacity:calc(var(--h${r.h}) * 0.16)`}
+                ></i>
+                <span class="pnum" style={`left:${r.nx}vmin;top:${r.ny}vmin`}>{r.h}</span>
+              </>
+            ))}
+          </div>
+
+          <p class="plate__cap"><span></span>Plan · The room</p>
+
+          <div class="section">
+            <i class="pw" style="left:0;top:0;width:44vmin;height:0.9vmin"></i>
+            <i class="pw" style="left:0;top:0.9vmin;width:1vmin;height:7.1vmin"></i>
+            <i class="pw" style="left:43vmin;top:0.9vmin;width:1vmin;height:7.1vmin"></i>
+            <i class="pw sfloor" style="left:0;top:8vmin;width:44vmin;height:1.2vmin"></i>
+            {arches.map((x) => (
+              <i class="sarch" style={`left:${x}vmin;top:1.6vmin`}></i>
+            ))}
+            {colDots.map((x) => (
+              <>
+                <i class="sstem" style={`left:${x}vmin;top:0.9vmin`}></i>
+                <i class="sbulb" style={`left:${x - 0.6}vmin;top:3.1vmin`}></i>
+              </>
+            ))}
+            {stools.map((x) => (
+              <i class="sstool" style={`left:${x}vmin;top:6.5vmin`}></i>
+            ))}
+            <i class="scounter" style="left:20vmin;top:5.2vmin"></i>
+          </div>
+
+          <p class="plate__cap"><span></span>Section A–A&#39;</p>
+        </div>
+
+        {/* Exploded stack of levels, right side. */}
+        <div class="key">
+          {levels.map((l) => (
+            <>
+              <i class="key__tick" style={`left:0;top:${l.top + 4}vmin`}></i>
+              <i class="key__tick key__tick--out" style={`left:-6.4vmin;top:${l.top + 4}vmin`}></i>
+              <i class="key__tick key__tick--out" style={`left:6.4vmin;top:${l.top + 4}vmin`}></i>
+              <i class={`key__plate${l.on ? ' key__plate--on' : ''}`} style={`left:-4vmin;top:${l.top}vmin`}></i>
+              <span class="key__label" style={`top:calc(${l.top + 4}vmin - 0.6em)`}>{l.label}</span>
+            </>
+          ))}
+          <p class="key__cap"><span></span>Exploded key</p>
+        </div>
+
+        {/* Scale bar and north point. */}
+        <div class="scale">
+          <div class="scale__bars"><i></i><i></i></div>
+          <span class="scale__nums">0FT 10 20</span>
+          <div class="scale__north"><i></i></div>
+        </div>
+
+        {/* The nav itself. */}
+        <div class="panel">
+          <h2 class="panel__title">ONE ROOM</h2>
+          <p class="panel__lede">
+            Six places to look, drawn in plan. The counter runs along the north wall, the
+            dining floor fills the centre, and the back of house sits behind the door on
+            the east side. Every room is a way into the work.
+          </p>
+
+          <nav class="nav">
+            {pillars.map((p, i) => (
+              <a href={`/${p.slug}`} class="nav__item" data-hi={i + 1}>
+                <span class="nav__n">{p.n}</span>
+                <span class="nav__label">{p.title}</span>
+              </a>
+            ))}
+          </nav>
+        </div>
+
+        <p class="corner corner--l">CoversFlow · SEO for hospitality</p>
+        <p class="corner corner--r"><span></span>Somebody is always open</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* ── Trigger ─────────────────────────────────────────────────── */
+  /* Above .sheet (z 50) — it's the close control once the menu is open. */
+  .burger {
+    position: relative; z-index: 60;
+    display: grid; gap: 6px; place-content: center;
+    width: 46px; height: 46px; padding: 0;
+    background: transparent; border: 1px solid rgb(27 26 24 / .28);
+    border-radius: var(--radius-sm); cursor: pointer;
+    transition: border-color var(--dur-fast) ease;
+  }
+  .burger:hover, .burger:focus-visible { border-color: var(--rust); }
+  .burger:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .burger i {
+    display: block; width: 22px; height: 1.5px; background: var(--ink);
+    transition: transform 420ms cubic-bezier(.16, 1, .3, 1);
+  }
+  .burger i:nth-child(1) {
+    transform: translateY(calc(var(--open) * 3.75px)) rotate(calc(var(--open) * 45deg));
+  }
+  .burger i:nth-child(2) {
+    transform: translateY(calc(var(--open) * -3.75px)) rotate(calc(var(--open) * -45deg));
+  }
+
+  /* ── Overlay shell ───────────────────────────────────────────── */
+  .sheet {
+    position: fixed; inset: 0; z-index: 50; overflow: hidden;
+    background: var(--paper);
+    opacity: var(--open); visibility: hidden; pointer-events: none;
+    transition: opacity 620ms cubic-bezier(.16, 1, .3, 1);
+  }
+  .sheet__zoom {
+    position: absolute; inset: 0;
+    transform: scale(calc(.32 + .68 * var(--open)));
+    transform-origin: 52% 58%;
+    filter: blur(calc((1 - var(--open)) * 6px));
+    transition: transform 1050ms cubic-bezier(.16, 1, .3, 1);
+  }
+  /* Content stays bounded on ultra-wide, matching the rest of the site. */
+  .sheet__inner { position: relative; height: 100%; max-width: 1600px; margin: 0 auto; }
+
+  /* ── Light ───────────────────────────────────────────────────── */
+  .rays {
+    position: absolute; left: 52%; top: 58%; width: 0; height: 0;
+    transform: translate(calc(var(--mx) * 20px), calc(var(--my) * 14px));
+    transition: transform 900ms cubic-bezier(.22, 1, .36, 1);
+  }
+  .rays > div {
+    position: absolute; left: 0; top: 0; width: 260vmax; height: 260vmax;
+    transform: translate(-50%, -50%);
+    mask-composite: intersect; -webkit-mask-composite: source-in;
+  }
+  .rays__wide {
+    animation: menu-drift 38s ease-in-out infinite;
+    background: repeating-conic-gradient(from -90deg at 50% 50%, rgb(168 67 30 / 0) 0deg 7.4deg, rgb(168 67 30 / .085) 7.4deg 9deg);
+    filter: blur(9px); opacity: calc(var(--open) * .85);
+    transition: opacity 900ms ease 120ms;
+    mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 6%, rgb(0 0 0 / .55) 22%, rgb(0 0 0 / 0) 42%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 86deg, rgb(0 0 0 / .5) 104deg, rgb(0 0 0 / 0) 124deg, rgb(0 0 0 / 0) 236deg, rgb(0 0 0 / .5) 256deg, #000 274deg, #000 360deg);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 6%, rgb(0 0 0 / .55) 22%, rgb(0 0 0 / 0) 42%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 86deg, rgb(0 0 0 / .5) 104deg, rgb(0 0 0 / 0) 124deg, rgb(0 0 0 / 0) 236deg, rgb(0 0 0 / .5) 256deg, #000 274deg, #000 360deg);
+  }
+  .rays__fine {
+    background: repeating-conic-gradient(from -90deg at 50% 50%, rgb(168 67 30 / 0) 0deg 2.5deg, rgb(168 67 30 / .075) 2.5deg 3.05deg);
+    filter: blur(1.2px); opacity: calc(var(--open) * .95);
+    mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 5%, rgb(0 0 0 / .6) 18%, rgb(0 0 0 / 0) 36%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 84deg, rgb(0 0 0 / .5) 102deg, rgb(0 0 0 / 0) 122deg, rgb(0 0 0 / 0) 238deg, rgb(0 0 0 / .5) 258deg, #000 276deg, #000 360deg);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 5%, rgb(0 0 0 / .6) 18%, rgb(0 0 0 / 0) 36%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 84deg, rgb(0 0 0 / .5) 102deg, rgb(0 0 0 / 0) 122deg, rgb(0 0 0 / 0) 238deg, rgb(0 0 0 / .5) 258deg, #000 276deg, #000 360deg);
+  }
+  .rays__glow {
+    background: repeating-conic-gradient(from -90deg at 50% 50%, rgb(192 139 44 / 0) 0deg 17deg, rgb(192 139 44 / .055) 17deg 18.4deg);
+    filter: blur(14px); opacity: calc(var(--open) * .8);
+    mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 8%, rgb(0 0 0 / 0) 40%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 80deg, rgb(0 0 0 / 0) 118deg, rgb(0 0 0 / 0) 242deg, #000 280deg, #000 360deg);
+    -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 0%, #000 8%, rgb(0 0 0 / 0) 40%), conic-gradient(from 0deg at 50% 50%, #000 0deg, #000 80deg, rgb(0 0 0 / 0) 118deg, rgb(0 0 0 / 0) 242deg, #000 280deg, #000 360deg);
+  }
+
+  .colonnade {
+    position: absolute; top: 58%; bottom: 0; width: 30%; pointer-events: none;
+    filter: blur(.8px); opacity: calc(var(--open) * .9);
+    transition: opacity 900ms ease 260ms, transform 900ms cubic-bezier(.22, 1, .36, 1);
+    mask-composite: intersect; -webkit-mask-composite: source-in;
+  }
+  .colonnade--l {
+    left: 0; transform-origin: right top;
+    transform: skewX(-3deg) translateX(calc(var(--mx) * 12px));
+    background-image: repeating-linear-gradient(to right, rgb(168 67 30 / 0) 0 29px, rgb(168 67 30 / .10) 29px 30px), repeating-linear-gradient(to right, rgb(168 67 30 / 0) 0 71px, rgb(168 67 30 / .07) 71px 72px);
+    mask-image: linear-gradient(to right, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .5) 26%, #000 100%), linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, #000 18%, #000 84%, rgb(0 0 0 / .3) 100%);
+    -webkit-mask-image: linear-gradient(to right, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .5) 26%, #000 100%), linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, #000 18%, #000 84%, rgb(0 0 0 / .3) 100%);
+  }
+  .colonnade--r {
+    right: 0; transform-origin: left top;
+    transform: skewX(3deg) translateX(calc(var(--mx) * 12px));
+    background-image: repeating-linear-gradient(to left, rgb(168 67 30 / 0) 0 29px, rgb(168 67 30 / .10) 29px 30px), repeating-linear-gradient(to left, rgb(168 67 30 / 0) 0 71px, rgb(168 67 30 / .07) 71px 72px);
+    mask-image: linear-gradient(to left, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .5) 26%, #000 100%), linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, #000 18%, #000 84%, rgb(0 0 0 / .3) 100%);
+    -webkit-mask-image: linear-gradient(to left, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / .5) 26%, #000 100%), linear-gradient(to bottom, rgb(0 0 0 / 0) 0%, #000 18%, #000 84%, rgb(0 0 0 / .3) 100%);
+  }
+
+  .floor {
+    position: absolute; left: 0; right: 0; bottom: 0; height: 34%; pointer-events: none;
+    background-color: rgb(231 224 209 / .40);
+    background-image: radial-gradient(rgb(168 67 30 / .16) .7px, transparent .8px), radial-gradient(rgb(192 139 44 / .12) .6px, transparent .7px);
+    background-size: 30px 30px, 47px 47px; background-position: 0 0, 15px 21px;
+    filter: blur(.7px); opacity: calc(var(--open) * .75);
+    transition: opacity 900ms ease 200ms;
+    mask-image: linear-gradient(to top, #000 0%, rgb(0 0 0 / .45) 54%, rgb(0 0 0 / 0) 100%);
+    -webkit-mask-image: linear-gradient(to top, #000 0%, rgb(0 0 0 / .45) 54%, rgb(0 0 0 / 0) 100%);
+  }
+  /* The diner's ceiling light, pooling low and right. */
+  .lamp {
+    position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(120% 70% at 76% 92%, rgb(232 223 168 / .38) 0%, rgb(232 223 168 / 0) 60%), radial-gradient(90% 60% at 10% 88%, rgb(168 67 30 / .07) 0%, rgb(168 67 30 / 0) 70%);
+    opacity: var(--open); transition: opacity 800ms ease 160ms;
+  }
+
+  /* ── Drawings ────────────────────────────────────────────────── */
+  .plates {
+    position: absolute;
+    left: calc(max(3.5vw, 22px) + min(34vw, 430px) + 4vw);
+    right: calc(max(3vw, 20px) + 15vmin);
+    top: 34%; bottom: 7%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 3vmin; pointer-events: none;
+    opacity: var(--open);
+    transform: translate(calc(var(--mx) * -7px), calc(var(--my) * -5px));
+    transition: transform 900ms cubic-bezier(.22, 1, .36, 1), opacity 800ms ease 200ms;
+  }
+  .plan { position: relative; width: 44vmin; height: 26vmin; flex: none; }
+  .section { position: relative; width: 44vmin; height: 9.2vmin; flex: none; margin-top: 1vmin; }
+  .plan i, .plan span, .section i { position: absolute; }
+
+  /* Hatched structure. */
+  .pw {
+    border: 1px solid var(--rust);
+    background-image: repeating-linear-gradient(45deg, rgb(168 67 30 / .30) 0 1px, rgb(168 67 30 / 0) 1px 4px);
+  }
+  .sfloor { border: none; border-top: 1px solid var(--rust); }
+  .pl { border: 1px solid rgb(168 67 30 / .55); }
+  .pl--faint { border-color: rgb(168 67 30 / .40); }
+  .pfill { border: 1px solid var(--rust); background: rgb(168 67 30 / .14); }
+  .prule { height: 1px; background: rgb(168 67 30 / .45); }
+  .pdot {
+    border: 1px dashed var(--rust);
+    background-image: radial-gradient(circle, rgb(168 67 30 / .34) 0 .9px, rgb(168 67 30 / 0) 1px);
+    background-size: 2.2vmin 2.2vmin;
+  }
+  .parc {
+    width: 2.6vmin; height: 2.6vmin; border-radius: 100% 0 0 0;
+    border-left: 1px solid rgb(168 67 30 / .5); border-top: 1px solid rgb(168 67 30 / .5);
+  }
+  .parrow {
+    width: 0; height: 0;
+    border-top: .9vmin solid transparent; border-bottom: .9vmin solid transparent;
+    border-left: 1.4vmin solid var(--rust);
+  }
+  .proom { background: var(--rust); transition: opacity 260ms ease; }
+  .pnum {
+    display: grid; place-items: center;
+    width: 2.8vmin; height: 2.8vmin; min-width: 17px; min-height: 17px;
+    border: 1px solid var(--rust); border-radius: 50%;
+    background: var(--paper); color: var(--rust);
+    font-family: var(--font-mono); font-size: clamp(8px, 1.1vmin, 11px);
+  }
+
+  .sarch {
+    width: 6.4vmin; height: 4.4vmin; border-radius: 100% 100% 0 0;
+    border: 1px solid rgb(168 67 30 / .42); border-bottom: none;
+  }
+  .sstem { width: 1px; height: 2.2vmin; background: rgb(27 26 24 / .22); }
+  .sbulb {
+    width: 1.2vmin; height: 1.2vmin; border-radius: 50%;
+    background: var(--lamp); border: 1px solid rgb(168 67 30 / .35);
+  }
+  .sstool { width: 1.4vmin; height: 1.5vmin; border: 1px solid rgb(168 67 30 / .4); border-bottom: none; }
+  .scounter { width: 4vmin; height: 2.8vmin; background: rgb(168 67 30 / .9); }
+
+  .plate__cap, .key__cap {
+    display: flex; align-items: center; gap: 12px; margin: 2vmin 0 0;
+    font-family: var(--font-mono); font-size: clamp(9px, 1.05vmin, 11px);
+    letter-spacing: .22em; text-transform: uppercase; color: var(--ink-3);
+    white-space: nowrap;
+  }
+  .plate__cap span, .key__cap span { display: block; width: 26px; height: 1px; background: rgb(168 67 30 / .5); }
+
+  /* ── Exploded key ────────────────────────────────────────────── */
+  .key {
+    position: absolute; right: calc(max(3vw, 20px) + 4vmin); top: 46%;
+    pointer-events: none; opacity: calc(var(--open) * .95);
+    transform: translate(calc(var(--mx) * -12px), calc(var(--my) * -8px));
+    transition: transform 900ms cubic-bezier(.22, 1, .36, 1), opacity 800ms ease 320ms;
+  }
+  .key i, .key span, .key p { position: absolute; }
+  .key__tick { width: 0; height: 4vmin; border-left: 1px dashed rgb(168 67 30 / .4); }
+  .key__tick--out { height: 8vmin; border-left-color: rgb(168 67 30 / .22); }
+  .key__plate {
+    width: 8vmin; height: 8vmin; border: 1px solid rgb(168 67 30 / .42);
+    transform: scaleY(.55) rotate(45deg);
+  }
+  .key__plate--on { border: 1.5px solid var(--rust); background: rgb(168 67 30 / .12); }
+  .key__label {
+    right: 7vmin; text-align: right; white-space: nowrap;
+    font-family: var(--font-mono); font-size: clamp(8px, .95vmin, 10px);
+    letter-spacing: .18em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .key__cap { right: -6.4vmin; top: 18vmin; flex-direction: row-reverse; }
+
+  /* ── Scale bar ───────────────────────────────────────────────── */
+  .scale {
+    position: absolute; right: max(3vw, 20px); top: max(12vh, 104px);
+    display: flex; align-items: flex-end; gap: 18px;
+    color: var(--rust); pointer-events: none;
+    opacity: calc(var(--open) * .95); transition: opacity 800ms ease 240ms;
+  }
+  .scale__bars { display: flex; align-items: flex-end; }
+  .scale__bars i { display: block; width: 34px; height: 7px; border: 1px solid var(--rust); }
+  .scale__bars i:first-child { border-right: none; }
+  .scale__nums { font-family: var(--font-mono); font-size: 10px; letter-spacing: .2em; padding-bottom: 1px; }
+  .scale__north { position: relative; width: 22px; height: 22px; border: 1px solid var(--rust); border-radius: 50%; }
+  .scale__north i { position: absolute; left: 50%; top: 3px; width: 1px; height: 8px; background: var(--rust); }
+
+  /* ── Nav panel ───────────────────────────────────────────────── */
+  .panel {
+    position: absolute; left: max(3.5vw, 22px); top: max(4vh, 26px);
+    width: min(34vw, 430px);
+    opacity: var(--open);
+    transform: translateX(calc((1 - var(--open)) * 40px));
+    transition: opacity 700ms ease 140ms, transform 850ms cubic-bezier(.16, 1, .3, 1) 140ms;
+  }
+  .panel__title {
+    margin: 0; font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(30px, 3.6vw, 52px); letter-spacing: .04em; line-height: 1;
+    color: transparent; -webkit-text-stroke: 1.4px var(--rust);
+  }
+  .panel__lede {
+    margin: 18px 0 0; font-style: italic; text-align: justify;
+    font-size: clamp(11px, .92vw, 14px); line-height: 1.7; color: var(--rust);
+  }
+  .nav {
+    display: flex; flex-direction: column;
+    margin-top: clamp(28px, 5vh, 64px);
+    border-top: 1px solid rgb(27 26 24 / .14);
+  }
+  .nav__item {
+    display: grid; grid-template-columns: 34px 1fr; align-items: baseline; gap: 12px;
+    padding: clamp(9px, 1.4vh, 16px) 0;
+    border-bottom: 1px solid rgb(27 26 24 / .14);
+    text-decoration: none;
+    transition: padding-left 260ms ease, background 260ms ease;
+  }
+  .nav__item:hover, .nav__item:focus-visible { padding-left: 10px; background: rgb(168 67 30 / .05); }
+  .nav__item:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+  .nav__n { font-family: var(--font-mono); font-size: 13px; letter-spacing: .2em; color: var(--ink-3); }
+  .nav__label {
+    font-size: clamp(13px, 1.15vw, 17px); letter-spacing: .16em;
+    text-transform: uppercase; color: var(--ink);
+  }
+  .nav__item:hover .nav__label { color: var(--rust); }
+
+  /* ── Corner captions ─────────────────────────────────────────── */
+  .corner {
+    position: absolute; bottom: max(3vh, 20px); margin: 0;
+    font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--ink-3); opacity: calc(var(--open) * .9);
+  }
+  .corner--l { left: max(3.5vw, 22px); font-style: italic; transition: opacity 700ms ease 520ms; }
+  .corner--r {
+    right: max(3vw, 20px); display: flex; align-items: center; gap: 12px;
+    letter-spacing: .24em; transition: opacity 700ms ease 560ms;
+  }
+  .corner--r span { display: block; width: 40px; height: 1px; background: rgb(168 67 30 / .4); }
+
+  /* Drawings need room; below that, the nav carries the overlay alone. */
+  @media (max-width: 900px), (max-height: 620px) {
+    .plates, .key, .scale, .corner--r { display: none; }
+    .panel { width: min(88vw, 430px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rays__wide { animation: none; }
+    .sheet, .sheet__zoom, .plates, .panel, .key, .burger i { transition-duration: .01ms; }
+    .sheet__zoom { transform: none; filter: none; }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const sheet = document.querySelector<HTMLElement>('[data-menu-sheet]');
+
+  if (toggle && sheet) {
+    const root = document.documentElement;
+    let open = false;
+    let hideT: ReturnType<typeof setTimeout>;
+    let raf = 0;
+    const point = { x: 0, y: 0 };
+
+    /* Everything except the header — inert while open so the covered page
+       can't be reached by Tab. */
+    const behind = Array.from(document.querySelectorAll<HTMLElement>('.site > *'))
+      .filter((el) => !el.contains(toggle));
+
+    const setOpen = (v: boolean) => {
+      open = v;
+      toggle.setAttribute('aria-expanded', String(v));
+      toggle.setAttribute('aria-label', v ? 'Close menu' : 'Open menu');
+      document.body.classList.toggle('menu-open', v);
+      behind.forEach((el) => { el.inert = v; });
+      clearTimeout(hideT);
+
+      if (v) {
+        sheet.style.visibility = 'visible';
+        sheet.style.pointerEvents = 'auto';
+        requestAnimationFrame(() => root.style.setProperty('--open', '1'));
+      } else {
+        root.style.setProperty('--open', '0');
+        root.style.setProperty('--mx', '0');
+        root.style.setProperty('--my', '0');
+        highlight(0);
+        sheet.style.pointerEvents = 'none';
+        /* Outlast the 1050ms zoom so it doesn't snap away mid-close. */
+        hideT = setTimeout(() => { if (!open) sheet.style.visibility = 'hidden'; }, 1100);
+      }
+    };
+
+    const highlight = (n: number) => {
+      for (let i = 1; i <= 6; i++) root.style.setProperty(`--h${i}`, i === n ? '1' : '0');
+    };
+
+    toggle.addEventListener('click', () => setOpen(!open));
+
+    /* Click the empty ground to dismiss, but not the drawings or the nav. */
+    sheet.addEventListener('click', (e) => {
+      if (e.target === sheet || (e.target as HTMLElement).classList.contains('sheet__inner')) setOpen(false);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && open) { setOpen(false); toggle.focus(); }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!open) return;
+      point.x = (e.clientX / window.innerWidth - 0.5) * 2;
+      point.y = (e.clientY / window.innerHeight - 0.5) * 2;
+      if (!raf) {
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          if (!open) return;
+          root.style.setProperty('--mx', point.x.toFixed(3));
+          root.style.setProperty('--my', point.y.toFixed(3));
+        });
+      }
+    });
+
+    sheet.querySelectorAll<HTMLElement>('[data-hi]').forEach((el) => {
+      const n = Number(el.dataset.hi);
+      el.addEventListener('pointerenter', () => highlight(n));
+      el.addEventListener('focus', () => highlight(n));
+      el.addEventListener('pointerleave', () => highlight(0));
+      el.addEventListener('blur', () => highlight(0));
+    });
+  }
+</script>
