@@ -92,7 +92,12 @@ const css = spaces.map(p => `
 
     <div class="bubbles">
       {spaces.map(p => (
-        <a href={p.href} class={`bubble bubble--${p.id}`} data-hotspot={p.id}>
+        <a
+          href={p.href}
+          class={`bubble bubble--${p.id}`}
+          data-hotspot={p.id}
+          transition:name={p.href === '/brand-visibility' ? 'space-hero' : undefined}
+        >
           <span class="bubble__ring">{p.n}<span class="bubble__orbit"></span></span>
           <span class="bubble__label">{p.title}</span>
         </a>
@@ -238,8 +243,15 @@ const css = spaces.map(p => `
 </style>
 
 <script>
-  const stage = document.querySelector('[data-stage]');
-  if (stage) {
+  /* astro:page-load, not top-level: this component's script only executes
+     once per session (ES module caching) even though ClientRouter lets a
+     visitor return to "/" many times via soft navigation. Re-binding on
+     every page-load event (fired for the initial load too) is what makes
+     the hover interaction work again on a revisit, not just the first. */
+  document.addEventListener('astro:page-load', () => {
+    const stage = document.querySelector('[data-stage]');
+    if (!stage) return;
+
     /* The active hotspot's bubble, surfaced cutout and card form ONE hover
        zone (the clip-path also clips hit-testing, so the cutout only catches
        the mouse inside its shape). Leaving the zone dismisses after a grace
@@ -264,5 +276,5 @@ const css = spaces.map(p => `
     stage.addEventListener('focusout', (e) => {
       if (!stage.contains(e.relatedTarget)) set(null);
     });
-  }
+  });
 </script>

@@ -1,26 +1,36 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { spaces } from '../data/spaces';
+import { spaceContent } from '../data/space-content';
+import SpaceContent from '../components/SpaceContent.astro';
 
 export function getStaticPaths() {
   return spaces.map((p) => ({ params: { space: p.slug }, props: { p } }));
 }
 
 const { p } = Astro.props;
+const hasContent = Boolean(spaceContent[p.slug]);
 ---
 
 <Layout title={`${p.title} — CoversFlow`} description={p.blurb}>
-  <article class="space-page">
+  <article class="space-page" transition:name={p.slug === 'brand-visibility' ? 'space-hero' : undefined}>
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
     <p class="kicker">Space {p.n}</p>
     <h1>{p.title}</h1>
     <p class="lead">{p.blurb}</p>
-    <ul class="tags">
-      {p.tags.map((t) => <li>{t}</li>)}
-    </ul>
-    <p class="placeholder">More on this space is coming soon.</p>
-    <a href="/" class="back">← Back to the diner</a>
+    {!hasContent && (
+      <>
+        <ul class="tags">
+          {p.tags.map((t) => <li>{t}</li>)}
+        </ul>
+        <p class="placeholder">More on this space is coming soon.</p>
+      </>
+    )}
   </article>
+
+  <SpaceContent slug={p.slug} />
+
+  <p class="back-wrap"><a href="/" class="back">← Back to the diner</a></p>
 </Layout>
 
 <style>
@@ -59,6 +69,13 @@ const { p } = Astro.props;
   }
 
   .placeholder { color: var(--ink-3); font-size: var(--step--1); }
+
+  .back-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+    text-align: center;
+  }
   .back { color: var(--rust); text-decoration: none; font-size: var(--step--1); }
   .back:hover { text-decoration: underline; text-underline-offset: 4px; }
 </style>

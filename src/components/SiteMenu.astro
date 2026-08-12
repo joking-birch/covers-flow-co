@@ -492,11 +492,6 @@ const levels = [
     let raf = 0;
     const point = { x: 0, y: 0 };
 
-    /* Everything except the header — inert while open so the covered page
-       can't be reached by Tab. */
-    const behind = Array.from(document.querySelectorAll<HTMLElement>('.site > *'))
-      .filter((el) => !el.contains(toggle));
-
     const setOpen = (v: boolean) => {
       open = v;
       toggle.setAttribute('aria-expanded', String(v));
@@ -505,6 +500,14 @@ const levels = [
       // overflow:hidden alone doesn't stop Lenis (see Layout.astro) — it
       // drives scroll via JS regardless of CSS overflow.
       (window as any).lenis?.[v ? 'stop' : 'start']();
+      // Everything except the header — inert while open so the covered page
+      // can't be reached by Tab. Queried fresh on every call, not cached at
+      // script-load time: the header persists across soft navigations, but
+      // its <slot /> siblings are swapped for whatever page is current, so
+      // a cached list would inert the wrong (detached) elements after
+      // navigating away from wherever this script first ran.
+      const behind = Array.from(document.querySelectorAll<HTMLElement>('.site > *'))
+        .filter((el) => !el.contains(toggle));
       behind.forEach((el) => { el.inert = v; });
       clearTimeout(hideT);
 

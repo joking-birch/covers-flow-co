@@ -23,60 +23,70 @@ import FlowMark from './FlowMark.astro';
 </div>
 
 <script>
-  const loader = document.querySelector<HTMLElement>('[data-loader]');
+  /* astro:page-load (not top-level execution) on purpose: with ClientRouter
+     enabled site-wide, this module only ever executes once per browser
+     session (ES module caching), but a visitor can return to "/" many times
+     via soft navigation. Without re-binding here, a revisit re-inserts this
+     component's markup fresh (Astro doesn't persist it) with no script to
+     process it — the overlay div just sits there, unremoved, permanently
+     blocking the page. astro:page-load fires on the initial load too, so
+     this single listener covers every visit, first or repeat. */
+  document.addEventListener('astro:page-load', () => {
+    const loader = document.querySelector<HTMLElement>('[data-loader]');
+    if (!loader) return;
 
-  if (loader) {
     const SESSION_KEY = 'cf-intro-seen';
     const HOLD_MS = 2200; // keep in sync with .loader__bar-fill's animation-duration
 
     if (sessionStorage.getItem(SESSION_KEY)) {
       loader.remove();
-    } else {
-      document.body.classList.add('loading');
-      // overflow:hidden alone doesn't stop Lenis (see Layout.astro) — it
-      // drives scroll via JS regardless of CSS overflow.
-      (window as any).lenis?.stop();
-
-      const bg = loader.querySelector<HTMLElement>('[data-loader-bg]')!;
-      const logo = loader.querySelector<HTMLElement>('[data-loader-logo]')!;
-      const real = document.querySelector<HTMLElement>('[data-header-logo]');
-
-      const pageReady = new Promise<void>((resolve) => {
-        if (document.readyState === 'complete') resolve();
-        else window.addEventListener('load', () => resolve(), { once: true });
-      });
-      const hold = new Promise<void>((resolve) => setTimeout(resolve, HOLD_MS));
-
-      Promise.all([pageReady, hold]).then(() => {
-        if (real) {
-          const realRect = real.getBoundingClientRect();
-          const cloneRect = logo.getBoundingClientRect();
-          const scale = realRect.width / cloneRect.width;
-          const dx = realRect.left + realRect.width / 2 - (cloneRect.left + cloneRect.width / 2);
-          const dy = realRect.top + realRect.height / 2 - (cloneRect.top + cloneRect.height / 2);
-          logo.style.setProperty('--dx', `${dx}px`);
-          logo.style.setProperty('--dy', `${dy}px`);
-          logo.style.setProperty('--scale', String(scale));
-        }
-
-        loader.classList.add('is-leaving');
-        sessionStorage.setItem(SESSION_KEY, '1');
-
-        let done = false;
-        const finish = () => {
-          if (done) return;
-          done = true;
-          document.body.classList.remove('loading');
-          (window as any).lenis?.start();
-          loader.remove();
-        };
-        bg.addEventListener('transitionend', finish, { once: true });
-        // Safety net: this gates scroll for the whole site, so it must never
-        // get stuck open if transitionend doesn't fire (backgrounded tab etc).
-        setTimeout(finish, 1500);
-      });
+      return;
     }
-  }
+
+    document.body.classList.add('loading');
+    // overflow:hidden alone doesn't stop Lenis (see Layout.astro) — it
+    // drives scroll via JS regardless of CSS overflow.
+    (window as any).lenis?.stop();
+
+    const bg = loader.querySelector<HTMLElement>('[data-loader-bg]')!;
+    const logo = loader.querySelector<HTMLElement>('[data-loader-logo]')!;
+    const real = document.querySelector<HTMLElement>('[data-header-logo]');
+
+    const pageReady = new Promise<void>((resolve) => {
+      if (document.readyState === 'complete') resolve();
+      else window.addEventListener('load', () => resolve(), { once: true });
+    });
+    const hold = new Promise<void>((resolve) => setTimeout(resolve, HOLD_MS));
+
+    Promise.all([pageReady, hold]).then(() => {
+      if (real) {
+        const realRect = real.getBoundingClientRect();
+        const cloneRect = logo.getBoundingClientRect();
+        const scale = realRect.width / cloneRect.width;
+        const dx = realRect.left + realRect.width / 2 - (cloneRect.left + cloneRect.width / 2);
+        const dy = realRect.top + realRect.height / 2 - (cloneRect.top + cloneRect.height / 2);
+        logo.style.setProperty('--dx', `${dx}px`);
+        logo.style.setProperty('--dy', `${dy}px`);
+        logo.style.setProperty('--scale', String(scale));
+      }
+
+      loader.classList.add('is-leaving');
+      sessionStorage.setItem(SESSION_KEY, '1');
+
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        document.body.classList.remove('loading');
+        (window as any).lenis?.start();
+        loader.remove();
+      };
+      bg.addEventListener('transitionend', finish, { once: true });
+      // Safety net: this gates scroll for the whole site, so it must never
+      // get stuck open if transitionend doesn't fire (backgrounded tab etc).
+      setTimeout(finish, 1500);
+    });
+  });
 </script>
 
 <style>

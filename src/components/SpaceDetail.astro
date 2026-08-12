@@ -66,10 +66,16 @@ const serviceDetails: Record<string, string> = {
 </section>
 
 <script>
-  const list = document.querySelector<HTMLElement>('[data-detail-list]');
-  const section = list?.closest<HTMLElement>('.detail');
+  /* astro:page-load, not top-level: this module only executes once per
+     session (ES module caching), but ClientRouter lets a visitor return to
+     "/" via soft navigation. Re-binding on every page-load event (fired for
+     the initial load too) is what makes the accordion work again on a
+     revisit, not just the first time this page is seen. */
+  document.addEventListener('astro:page-load', () => {
+    const list = document.querySelector<HTMLElement>('[data-detail-list]');
+    const section = list?.closest<HTMLElement>('.detail');
+    if (!list || !section) return;
 
-  if (list && section) {
     const LINGER_MS = 300;
     let closeTimer: ReturnType<typeof setTimeout> | null = null;
     const cancelClose = () => { if (closeTimer) clearTimeout(closeTimer); closeTimer = null; };
@@ -166,7 +172,7 @@ const serviceDetails: Record<string, string> = {
         render();
       }
     });
-  }
+  });
 </script>
 
 <style>

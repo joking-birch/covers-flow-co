@@ -1,0 +1,239 @@
+---
+/**
+ * SpaceContent.astro — the interactive breakdown on a space page ([space].astro).
+ * Hover or click a signal to expand it (grid-row 0fr→1fr trick, single active
+ * at a time), same visual language as SpaceDetail's homepage accordion: rust
+ * shimmer ring on the open item, chevron rotates sideways → down. Renders
+ * nothing if the slug has no entry in src/data/space-content.ts yet.
+ */
+import { spaceContent } from '../data/space-content';
+
+interface Props {
+  slug: string;
+}
+const { slug } = Astro.props;
+const content = spaceContent[slug];
+---
+
+{content && (
+  <section class="signals">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>{content.sectionHeading}</h2>
+
+    <div class="signals__list" data-signals-list>
+      {content.signals.map((s, i) => (
+        <div class="signal" data-signal-id={`s${i}`}>
+          <button type="button" class="signal__header" data-signal-header aria-expanded="false">
+            <span class="signal__n">{String(i + 1).padStart(2, '0')}</span>
+            <span class="signal__title">{s.title}</span>
+            <svg class="signal__chevron" viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M5 3 L11 8 L5 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </button>
+          <div class="signal__grow">
+            <div class="signal__body">
+              <p>{s.body}</p>
+              <ul class="signal__checklist">
+                {s.checklist.map((c) => <li>{c}</li>)}
+              </ul>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <div class="signals__cta">
+      <p>{content.ctaLine}</p>
+      <a class="btn" href="/#get-started" data-qs-open-audit>{content.ctaLabel}</a>
+    </div>
+  </section>
+)}
+
+<script>
+  /* astro:page-load, not top-level: this module only executes once per
+     session (ES module caching), but ClientRouter lets a visitor land on a
+     space page more than once via soft navigation. Re-binding on every
+     page-load event (fired for the initial load too) is what makes the
+     accordion work again on a revisit, not just the first time. */
+  document.addEventListener('astro:page-load', () => {
+    const list = document.querySelector<HTMLElement>('[data-signals-list]');
+    if (!list) return;
+
+    const LINGER_MS = 300;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const cancel = () => { if (timer) clearTimeout(timer); timer = null; };
+
+    const items = Array.from(list.querySelectorAll<HTMLElement>('[data-signal-id]'));
+
+    const setOpen = (target: HTMLElement | null) => {
+      cancel();
+      items.forEach((el) => {
+        const isTarget = el === target;
+        el.toggleAttribute('data-open', isTarget);
+        el.querySelector('[data-signal-header]')?.setAttribute('aria-expanded', String(isTarget));
+      });
+    };
+
+    const scheduleClose = () => {
+      cancel();
+      timer = setTimeout(() => setOpen(null), LINGER_MS);
+    };
+
+    items.forEach((item) => {
+      const header = item.querySelector<HTMLButtonElement>('[data-signal-header]')!;
+      header.addEventListener('pointerenter', () => setOpen(item));
+      header.addEventListener('focus', () => setOpen(item));
+      header.addEventListener('click', () => setOpen(item));
+      item.addEventListener('pointerleave', scheduleClose);
+      header.addEventListener('blur', scheduleClose);
+    });
+    list.addEventListener('pointerleave', scheduleClose);
+  });
+</script>
+
+<style>
+  .signals {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+  }
+  .signals h2 { margin: 0 0 var(--s-5); font-size: var(--step-2); }
+
+  .signals__list { display: flex; flex-direction: column; margin-bottom: var(--s-6); }
+
+  .signal {
+    position: relative;
+    padding: 0 var(--s-4);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .signal:first-child { border-top: 1px solid var(--paper-3); }
+
+  .signal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    width: 100%;
+    padding: var(--s-4) 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .signal__n {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--ochre);
+    flex: none;
+  }
+  .signal__title {
+    flex: 1;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-0);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .signal[data-open] .signal__title { color: var(--rust); }
+
+  .signal__chevron {
+    width: 15px;
+    height: 15px;
+    flex: none;
+    color: var(--rust);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .signal[data-open] .signal__chevron { transform: rotate(90deg); }
+
+  .signal__header:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+
+  .signal__grow {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .signal[data-open] .signal__grow { grid-template-rows: 1fr; }
+  .signal__body { overflow: hidden; min-height: 0; }
+  .signal__body p {
+    margin: 0 0 var(--s-3);
+    padding-top: var(--s-1);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .signal__checklist {
+    margin: 0 0 var(--s-5);
+    padding: 0;
+    list-style: none;
+  }
+  .signal__checklist li {
+    position: relative;
+    padding-left: 1.3em;
+    margin-bottom: var(--s-2);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .signal__checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: .55em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rust);
+  }
+
+  /* Same thin chasing-light ring as SpaceDetail's homepage accordion. */
+  @property --signal-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .signal[data-open]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    background: conic-gradient(from var(--signal-angle), var(--rust) 0deg, var(--ochre) 18deg, var(--lamp) 26deg, var(--ochre) 34deg, var(--rust) 55deg, var(--rust) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: signal-shimmer 3.2s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes signal-shimmer {
+    to { --signal-angle: 360deg; }
+  }
+
+  .signals__cta { text-align: center; }
+  .signals__cta p { margin: 0 0 var(--s-4); font-size: var(--step-0); color: var(--ink-2); }
+
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .signal__grow, .signal__chevron, .signal__title { transition-duration: .01ms; }
+    .signal[data-open]::before { animation: none; }
+  }
+</style>

@@ -111,8 +111,15 @@ import { plans, plansNote } from '../data/plans';
 </section>
 
 <script>
-  const root = document.querySelector<HTMLElement>('.quickstart');
-  if (root) {
+  /* astro:page-load, not top-level: this module only executes once per
+     session (ES module caching), but ClientRouter lets a visitor return to
+     "/" via soft navigation. Re-binding on every page-load event (fired for
+     the initial load too) is what makes the widget open/submit correctly
+     again on a revisit, not just the first time this page is seen. */
+  document.addEventListener('astro:page-load', () => {
+    const root = document.querySelector<HTMLElement>('.quickstart');
+    if (!root) return;
+
     const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
     const grow = root.querySelector<HTMLElement>('[data-qs-grow]')!;
     const panel = root.querySelector<HTMLElement>('[data-qs-panel]')!;
@@ -231,7 +238,7 @@ import { plans, plansNote } from '../data/plans';
         submitBtn.disabled = false;
       }
     });
-  }
+  });
 </script>
 
 <style>
