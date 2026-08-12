@@ -1,6 +1,6 @@
-/* The six pillars. NighthawksHero.astro keeps its own copy of this data with
+/* The six spaces. NighthawksHero.astro keeps its own copy of this data with
    hotspot geometry attached — if titles/blurbs/slugs change, update both. */
-export interface Pillar {
+export interface Space {
   slug: string;
   n: string;
   title: string;
@@ -8,7 +8,7 @@ export interface Pillar {
   tags: string[];
 }
 
-export const pillars: Pillar[] = [
+export const spaces: Space[] = [
   {
     slug: 'brand-visibility', n: '01', title: 'Brand Visibility',
     blurb: 'The sign is what the street reads first. Own the name before anyone types a keyword.',

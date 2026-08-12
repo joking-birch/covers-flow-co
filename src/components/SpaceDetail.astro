@@ -1,0 +1,285 @@
+---
+/**
+ * SpaceDetail.astro — "Every space, unpacked." Six header rows, two modes:
+ *
+ * "hover" (default): hovering a header opens it (grid-row 0fr→1fr trick, so
+ * the list reflows smoothly), same hover/linger pattern as NighthawksHero's
+ * hotspots. Leaving the list closes it after a short grace delay.
+ *
+ * "locked" (entered by clicking any header): the clicked item stays open
+ * regardless of hover. Hovering other headers only moves the border/shimmer
+ * ring to them (data-active) without expanding their content
+ * (data-expanded) — expanding a different item now requires a click.
+ * Scrolling the section fully out of view resets back to "hover" mode.
+ */
+import { spaces } from '../data/spaces';
+
+const serviceDetails: Record<string, string> = {
+  'Branded SERP': 'Own your name in search: your site, hours, and reviews outrank third-party listings when someone searches for you directly.',
+  'AI answer engines': "Show up when someone asks ChatGPT or Google's AI Overview where to eat, not just in ten blue links.",
+  'Entity & knowledge panel': 'Get the sidebar box right: hours, menu, and photos, all matching, all correct.',
+  'Keyword gap audit': "Find every search term the place down the street ranks for and you don't.",
+  'Content teardown': "See exactly what's on their pages that's winning, and where yours falls short.",
+  'Market share of search': 'Track how much of the local search results are actually yours, month over month.',
+  'Near-me intent': 'Rank for the searches that happen five minutes before someone walks in hungry.',
+  'Editorial & guides': "Get named in the 'best of' roundups and neighborhood guides people actually read.",
+  'Digital PR': "Earn the mentions and links that convince Google, and your guests, you're the real thing.",
+  'Review conversations': 'Reply to reviews like a person, not a template. Turn feedback into visible care.',
+  'Events & partnerships': "Use what's already happening in the room, from events and collabs to regulars, as search and link fuel.",
+  'Local link earning': 'Build the kind of local mentions that come from being part of the neighborhood, not from buying links.',
+  'Google Business Profile': "The single highest-leverage page you don't control unless someone's tending it.",
+  'Booking flow': 'From search result to seated, remove every extra tap in between.',
+  'Location pages': 'One page per location, built to rank, not just to exist.',
+  'Menu & recipe schema': 'Structured data so Google actually understands what you serve.',
+  'Site architecture': "A site that's easy to crawl is easy to find: structure work nobody sees, everyone benefits from.",
+  'Core Web Vitals': "Fast enough that a hungry phone doesn't give up and pick the next result.",
+};
+---
+
+<section class="detail">
+  <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+  <h2>Every space, unpacked</h2>
+  <div class="detail__list" data-detail-list>
+    {spaces.map((p) => (
+      <div class="detail__group" data-detail-id={p.slug}>
+        <button type="button" class="detail__header" data-detail-header aria-expanded="false">
+          <span class="detail__title">{p.title}</span>
+          <svg class="detail__chevron" viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M5 3 L11 8 L5 13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </button>
+        <div class="detail__grow">
+          <div class="detail__body">
+            <dl>
+              {p.tags.map((t) => (
+                <div class="detail__row">
+                  <dt>{t}</dt>
+                  <dd>{serviceDetails[t]}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  const list = document.querySelector<HTMLElement>('[data-detail-list]');
+  const section = list?.closest<HTMLElement>('.detail');
+
+  if (list && section) {
+    const LINGER_MS = 300;
+    let closeTimer: ReturnType<typeof setTimeout> | null = null;
+    const cancelClose = () => { if (closeTimer) clearTimeout(closeTimer); closeTimer = null; };
+
+    const groups = Array.from(list.querySelectorAll<HTMLElement>('[data-detail-id]'));
+
+    let mode: 'hover' | 'locked' = 'hover';
+    let openId: string | null = null; // content expanded (chevron + body)
+    let activeId: string | null = null; // border/shimmer ring shown
+
+    const render = () => {
+      groups.forEach((g) => {
+        const id = g.dataset.detailId ?? null;
+        g.toggleAttribute('data-expanded', id === openId);
+        g.toggleAttribute('data-active', id === activeId);
+        g.querySelector('[data-detail-header]')?.setAttribute('aria-expanded', String(id === openId));
+      });
+    };
+
+    const resetToHoverMode = () => {
+      cancelClose();
+      mode = 'hover';
+      openId = null;
+      activeId = null;
+      render();
+    };
+
+    // Scrolling the section fully out of view (either direction) drops the
+    // click-lock so it feels fresh, not stuck open, next time it's visible.
+    new IntersectionObserver((entries) => {
+      for (const entry of entries) if (!entry.isIntersecting) resetToHoverMode();
+    }).observe(section);
+
+    groups.forEach((group) => {
+      const id = group.dataset.detailId!;
+      const header = group.querySelector<HTMLButtonElement>('[data-detail-header]')!;
+
+      header.addEventListener('pointerenter', () => {
+        cancelClose();
+        if (mode === 'hover') { openId = id; activeId = id; }
+        else { activeId = id; } // locked: hover only moves the ring, doesn't expand
+        render();
+      });
+      header.addEventListener('focus', () => {
+        cancelClose();
+        if (mode === 'hover') { openId = id; activeId = id; }
+        else { activeId = id; }
+        render();
+      });
+
+      // Clicking locks onto this item — entering locked mode from a
+      // hover-opened item, or switching which item is locked open. Clicking
+      // the item that's already locked open instead collapses it and drops
+      // back to hover mode, so the toggle feels complete either direction.
+      header.addEventListener('click', () => {
+        cancelClose();
+        if (mode === 'locked' && openId === id) {
+          mode = 'hover';
+          openId = null;
+          activeId = null;
+        } else {
+          mode = 'locked';
+          openId = id;
+          activeId = id;
+        }
+        render();
+      });
+
+      const onLeave = () => {
+        if (mode === 'hover') {
+          cancelClose();
+          closeTimer = setTimeout(() => {
+            if (mode === 'hover') { openId = null; activeId = null; render(); }
+          }, LINGER_MS);
+        } else {
+          // Locked: leaving a merely-hovered item returns the ring to
+          // whichever item is actually locked open.
+          activeId = openId;
+          render();
+        }
+      };
+      group.addEventListener('pointerleave', onLeave);
+      header.addEventListener('blur', onLeave);
+    });
+
+    list.addEventListener('pointerleave', () => {
+      if (mode === 'hover') {
+        cancelClose();
+        closeTimer = setTimeout(() => {
+          if (mode === 'hover') { openId = null; activeId = null; render(); }
+        }, LINGER_MS);
+      } else {
+        activeId = openId;
+        render();
+      }
+    });
+  }
+</script>
+
+<style>
+  .detail {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .detail h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .detail__list { display: flex; flex-direction: column; }
+
+  .detail__group {
+    position: relative;
+    padding: 0 var(--s-4);
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .detail__group:first-child { border-top: 1px solid var(--paper-3); }
+
+  .detail__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    width: 100%;
+    padding: var(--s-4) 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font: inherit;
+    text-align: left;
+  }
+  .detail__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .detail__group[data-active] .detail__title { color: var(--rust); }
+
+  .detail__chevron {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    color: var(--rust);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .detail__group[data-expanded] .detail__chevron { transform: rotate(90deg); }
+
+  .detail__header:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+
+  /* Grid-row trick: the body's height animates from 0 to its natural size,
+     and because this is normal block flow, .detail__list around it just
+     reflows in step, frame by frame — no JS measuring needed. */
+  .detail__grow {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .detail__group[data-expanded] .detail__grow { grid-template-rows: 1fr; }
+  .detail__body { overflow: hidden; min-height: 0; }
+
+  .detail__body dl { margin: 0; padding: 0 0 var(--s-5); }
+  .detail__row { margin-bottom: var(--s-3); }
+  .detail__row:last-child { margin-bottom: 0; }
+  .detail__row dt {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--rust);
+    margin-bottom: 2px;
+  }
+  .detail__row dd {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* Thin animated ring around the active item — a bright highlight chasing
+     around an otherwise-rust line, not a blurred glow. conic-gradient's
+     start angle is driven by a registered custom property so it can be
+     transitioned by @keyframes; the mask punches out everything but a
+     2px-wide ring (works cleanly on a rectangle, unlike border-image).
+     Driven by data-active, not data-expanded — in locked mode this can be
+     showing on a hovered item whose content isn't open. */
+  @property --detail-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .detail__group[data-active]::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    background: conic-gradient(from var(--detail-angle), var(--rust) 0deg, var(--ochre) 18deg, var(--lamp) 26deg, var(--ochre) 34deg, var(--rust) 55deg, var(--rust) 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: detail-shimmer 3.2s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes detail-shimmer {
+    to { --detail-angle: 360deg; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .detail__grow, .detail__chevron, .detail__title { transition-duration: .01ms; }
+    .detail__group[data-active]::before { animation: none; }
+  }
+</style>

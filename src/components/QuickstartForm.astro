@@ -1,29 +1,17 @@
 ---
-const plans = [
-  {
-    id: 'standard',
-    title: 'Standard',
-    price: '$899',
-    body: '3 pages: Home, Menu, Contact.',
-  },
-  {
-    id: 'mid-tier',
-    title: 'Mid-tier',
-    price: 'Contact for pricing',
-    body: '4 pages: Standard, plus About, with bios for chefs, managers, and owners. Includes a menu-update service for restaurants with revolving menus.',
-  },
-];
+import { plans, plansNote } from '../data/plans';
 ---
 
 <section class="quickstart">
   <div class="quickstart__inner">
     <p class="quickstart__line">Not sure where you stand? Get a free website audit.</p>
-    <button type="button" class="quickstart__toggle" data-qs-toggle aria-expanded="false" aria-controls="quickstart-panel">
+    <button type="button" class="quickstart__toggle" id="get-started" data-qs-toggle aria-expanded="false" aria-controls="quickstart-panel">
       Get Started
     </button>
 
     <div class="quickstart__grow" data-qs-grow>
       <div class="quickstart__panel" id="quickstart-panel" data-qs-panel data-step="gate">
+       <div class="quickstart__box" data-qs-box>
 
         <div class="qs-step" data-qs-step="gate">
           <p class="qs-step__prompt">Do you currently have a website?</p>
@@ -34,11 +22,13 @@ const plans = [
         </div>
 
         <div class="qs-step" data-qs-step="audit">
+          <button type="button" class="qs-back" data-qs-goto="gate">← Back</button>
           <h3>Let's take a look</h3>
           <p class="qs-step__lead">Tell us where to find you and what you're working with.</p>
         </div>
 
         <div class="qs-step" data-qs-step="plans">
+          <button type="button" class="qs-back" data-qs-goto="gate">← Back</button>
           <h3>Let's build one</h3>
           <div class="qs-plans">
             {plans.map((p) => (
@@ -49,16 +39,11 @@ const plans = [
               </button>
             ))}
           </div>
-          <p class="qs-plans__note">Both plans include a year of updates, up to 2 revisions a month.</p>
-          <div class="qs-custom">
-            <p>Something bigger in mind? Let's talk design.</p>
-            <button type="button" class="btn btn--outline" data-qs-plan="custom" data-qs-goto="contact">
-              Schedule a design call
-            </button>
-          </div>
+          <p class="qs-plans__note">{plansNote}</p>
         </div>
 
         <div class="qs-step" data-qs-step="contact">
+          <button type="button" class="qs-back" data-qs-goto="gate">← Back</button>
           <h3 data-qs-contact-heading>Tell us where to reach you</h3>
           <p class="qs-step__lead" data-qs-contact-lead></p>
         </div>
@@ -119,6 +104,7 @@ const plans = [
         </form>
 
         <p class="qs-error" data-qs-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
+       </div>
       </div>
     </div>
   </div>
@@ -130,6 +116,7 @@ const plans = [
     const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
     const grow = root.querySelector<HTMLElement>('[data-qs-grow]')!;
     const panel = root.querySelector<HTMLElement>('[data-qs-panel]')!;
+    const box = root.querySelector<HTMLElement>('[data-qs-box]')!;
     const form = root.querySelector<HTMLFormElement>('[data-qs-form]')!;
     const pathInput = root.querySelector<HTMLInputElement>('[data-qs-path]')!;
     const websiteField = root.querySelector<HTMLElement>('[data-qs-field="website"]')!;
@@ -171,7 +158,11 @@ const plans = [
       setOpen(!isOpen);
     });
 
+    let resizeT: ReturnType<typeof setTimeout>;
+
     const goto = (step: string) => {
+      const fromHeight = box.offsetHeight;
+
       panel.dataset.step = step;
       const isAudit = step === 'audit';
       const isContact = step === 'contact';
@@ -189,6 +180,18 @@ const plans = [
         contactLead.textContent = copy.lead;
         submitBtn.textContent = copy.submit;
       }
+
+      /* The bordered box resizes to whichever step is now visible: measure
+         the natural height post-switch, hold at the old height, then
+         transition to it — same auto-height-transition trick used for the
+         panel's own open/close, just JS-driven since this also has to react
+         to content that changes (not just show/hide). */
+      const toHeight = box.scrollHeight;
+      box.style.height = `${fromHeight}px`;
+      void box.offsetHeight; // force reflow so the browser has a start point to animate from
+      box.style.height = `${toHeight}px`;
+      clearTimeout(resizeT);
+      resizeT = setTimeout(() => { box.style.height = ''; }, 480);
     };
 
     root.querySelectorAll<HTMLElement>('[data-qs-goto]').forEach((el) => {
@@ -196,6 +199,17 @@ const plans = [
         const plan = el.getAttribute('data-qs-plan');
         if (plan) pathInput.value = plan;
         goto(el.getAttribute('data-qs-goto')!);
+      });
+    });
+
+    /* External CTAs elsewhere on the page (e.g. the pricing section's "Get
+       my free audit") link to #get-started for the native scroll-to, and
+       also carry this attribute to open the panel straight to the audit
+       step rather than making the visitor answer the gate question again. */
+    document.querySelectorAll<HTMLElement>('[data-qs-open-audit]').forEach((el) => {
+      el.addEventListener('click', () => {
+        setOpen(true);
+        goto('audit');
       });
     });
 
@@ -266,10 +280,20 @@ const plans = [
     min-height: 0;
   }
 
-  .qs-step {
-    display: none;
+  /* Bounds whichever step is showing; resizes with it as the flow moves
+     between steps (see the goto() height transition in the script). */
+  .quickstart__box {
     max-width: 640px;
     margin: var(--s-6) auto 0;
+    padding: var(--s-6) var(--s-5);
+    border: 2px solid var(--rust);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: height var(--dur) var(--ease);
+  }
+
+  .qs-step {
+    display: none;
     text-align: left;
   }
   [data-step='gate'] .qs-step[data-qs-step='gate'] { display: block; }
@@ -317,11 +341,11 @@ const plans = [
 
   .qs-plans {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: var(--s-4);
     margin-bottom: var(--s-3);
   }
-  @media (max-width: 560px) { .qs-plans { grid-template-columns: 1fr; } }
+  @media (max-width: 700px) { .qs-plans { grid-template-columns: 1fr; } }
 
   .qs-plan {
     display: flex;
@@ -356,12 +380,19 @@ const plans = [
 
   .qs-plans__note { margin: 0 0 var(--s-5); font-size: 12px; color: var(--ink-3); }
 
-  .qs-custom {
-    padding-top: var(--s-4);
-    border-top: 1px solid var(--paper-3);
-    text-align: center;
+  .qs-back {
+    display: inline-block;
+    margin-bottom: var(--s-4);
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--ink-3);
+    font-size: var(--step--1);
+    cursor: pointer;
+    transition: color var(--dur-fast) var(--ease);
   }
-  .qs-custom p { margin: 0 0 var(--s-3); font-size: var(--step--1); color: var(--ink-2); }
+  .qs-back:hover, .qs-back:focus-visible { color: var(--rust); }
+  .qs-back:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 
   .qs-honeypot { position: absolute; left: -9999px; }
 
@@ -402,5 +433,9 @@ const plans = [
   [data-step='done'] .qs-fields,
   [data-step='done'] .qs-fields__actions {
     display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .quickstart__grow, .quickstart__box { transition-duration: .01ms; }
   }
 </style>

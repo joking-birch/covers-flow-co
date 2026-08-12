@@ -21,6 +21,11 @@
 
 body.menu-open { overflow: hidden; }
 
+/* Lenis (Layout.astro) toggles these classes on <html> itself. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
 /* Set by IntroLoader.astro while the intro plays; blocks scroll and hero
    hotspot interaction until the reveal animation finishes. */
 body.loading { overflow: hidden; }

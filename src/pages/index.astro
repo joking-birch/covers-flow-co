@@ -3,7 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import NighthawksHero from '../components/NighthawksHero.astro';
 import QuickstartForm from '../components/QuickstartForm.astro';
 import IntroLoader from '../components/IntroLoader.astro';
-import { pillars } from '../data/pillars';
+import SpaceDetail from '../components/SpaceDetail.astro';
+import { spaces } from '../data/spaces';
+import { plans, plansNote } from '../data/plans';
 
 const steps = [
   {
@@ -22,27 +24,6 @@ const steps = [
     body: 'Rankings move. Somebody opens across the street. We watch the map, adjust the work, and report in plain language.',
   },
 ];
-
-const serviceDetails: Record<string, string> = {
-  'Branded SERP': 'Own your name in search: your site, hours, and reviews outrank third-party listings when someone searches for you directly.',
-  'AI answer engines': "Show up when someone asks ChatGPT or Google's AI Overview where to eat, not just in ten blue links.",
-  'Entity & knowledge panel': 'Get the sidebar box right: hours, menu, and photos, all matching, all correct.',
-  'Keyword gap audit': "Find every search term the place down the street ranks for and you don't.",
-  'Content teardown': "See exactly what's on their pages that's winning, and where yours falls short.",
-  'Market share of search': 'Track how much of the local search results are actually yours, month over month.',
-  'Near-me intent': 'Rank for the searches that happen five minutes before someone walks in hungry.',
-  'Editorial & guides': "Get named in the 'best of' roundups and neighborhood guides people actually read.",
-  'Digital PR': "Earn the mentions and links that convince Google, and your guests, you're the real thing.",
-  'Review conversations': 'Reply to reviews like a person, not a template. Turn feedback into visible care.',
-  'Events & partnerships': "Use what's already happening in the room, from events and collabs to regulars, as search and link fuel.",
-  'Local link earning': 'Build the kind of local mentions that come from being part of the neighborhood, not from buying links.',
-  'Google Business Profile': "The single highest-leverage page you don't control unless someone's tending it.",
-  'Booking flow': 'From search result to seated, remove every extra tap in between.',
-  'Location pages': 'One page per location, built to rank, not just to exist.',
-  'Menu & recipe schema': 'Structured data so Google actually understands what you serve.',
-  'Site architecture': "A site that's easy to crawl is easy to find: structure work nobody sees, everyone benefits from.",
-  'Core Web Vitals': "Fast enough that a hungry phone doesn't give up and pick the next result.",
-};
 
 const faqs = [
   {
@@ -63,7 +44,7 @@ const faqs = [
   },
   {
     q: 'What size restaurant is this for?',
-    a: 'One location or many, counter service or fine dining. The six pillars scale down or up; what changes is how much time each one gets.',
+    a: 'One location or many, counter service or fine dining. The six spaces scale down or up; what changes is how much time each one gets.',
   },
   {
     q: 'Do we need to sign a long contract?',
@@ -79,16 +60,16 @@ const faqs = [
 
   <QuickstartForm />
 
-  <section class="pillars">
+  <section class="spaces">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
-    <h2>Six places to look</h2>
-    <ol class="pillars__grid">
-      {pillars.map((p) => (
+    <h2>Six spaces to look</h2>
+    <ol class="spaces__grid">
+      {spaces.map((p) => (
         <li>
-          <a href={`/${p.slug}`} class="pillar">
-            <span class="pillar__n">{p.n}</span>
-            <span class="pillar__title">{p.title}</span>
-            <span class="pillar__blurb">{p.blurb}</span>
+          <a href={`/${p.slug}`} class="space">
+            <span class="space__n">{p.n}</span>
+            <span class="space__title">{p.title}</span>
+            <span class="space__blurb">{p.blurb}</span>
           </a>
         </li>
       ))}
@@ -111,32 +92,46 @@ const faqs = [
 
   <section class="cta">
     <div class="cta__inner">
-      <h2>Pull up a stool.</h2>
+      <h2>Pull up a seat.</h2>
       <p>CoversFlow is just getting the lights on. Reach out and let's talk about what's actually happening in your search results.</p>
       <!-- Stand-in address: displays the coversflow.co brand address, actually delivers to ian@ianwhitewrites.com until that alias exists. -->
       <a class="btn" href="mailto:ian@ianwhitewrites.com">info@coversflow.co</a>
     </div>
   </section>
 
-  <section class="detail">
+  <section class="pricing">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
-    <h2>Every pillar, unpacked</h2>
-    <div class="detail__grid">
-      {pillars.map((p) => (
-        <div class="detail__group">
-          <h3>{p.title}</h3>
-          <dl>
-            {p.tags.map((t) => (
-              <div class="detail__row">
-                <dt>{t}</dt>
-                <dd>{serviceDetails[t]}</dd>
-              </div>
-            ))}
-          </dl>
+    <h2>What it costs</h2>
+
+    <div class="pricing__seo">
+      <p class="pricing__intro">If you already have a site and want it performing better, here's how CoversFlow prices ongoing SEO and AI-visibility work.</p>
+      <p class="pricing__intro">Every engagement starts with a free website audit, free for now while CoversFlow is taking on founding clients. From there, we tailor a plan and price to your site, your market, and how much ground needs covering.</p>
+
+      <div class="pricing__rate">
+        <span class="pricing__rate-label">Typical for a single-location restaurant</span>
+        <span class="pricing__rate-value">$500<span class="pricing__rate-dash">–</span>$1,200<span class="pricing__rate-unit">/mo</span></span>
+        <p class="pricing__rate-caption">Final pricing is scoped after your free audit.</p>
+        <a class="btn" href="#get-started" data-qs-open-audit>Get my free audit</a>
+      </div>
+    </div>
+
+    <h3 class="pricing__subhead">Website building &amp; design</h3>
+    <p class="pricing__subhead-lede">Starting from scratch? Fixed-scope builds, priced up front:</p>
+
+    <div class="pricing__grid">
+      {plans.map((p) => (
+        <div class="pricing__card">
+          <span class="pricing__title">{p.title}</span>
+          <span class="pricing__price">{p.price}</span>
+          <span class="pricing__body">{p.body}</span>
         </div>
       ))}
     </div>
+    <p class="pricing__note">{plansNote}</p>
+    <a class="pricing__link" href="#get-started">Get started ↑</a>
   </section>
+
+  <SpaceDetail />
 
   <section class="faq">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -153,14 +148,14 @@ const faqs = [
 </Layout>
 
 <style>
-  .pillars {
+  .spaces {
     max-width: 1080px;
     margin: 0 auto;
     padding: var(--s-8) var(--s-5);
   }
-  .pillars h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+  .spaces h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
 
-  .pillars__grid {
+  .spaces__grid {
     list-style: none;
     margin: 0;
     padding: 0;
@@ -168,10 +163,10 @@ const faqs = [
     grid-template-columns: repeat(3, 1fr);
     gap: var(--s-5);
   }
-  @media (max-width: 900px) { .pillars__grid { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 560px) { .pillars__grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .spaces__grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 560px) { .spaces__grid { grid-template-columns: 1fr; } }
 
-  .pillar {
+  .space {
     display: block;
     height: 100%;
     padding: var(--s-4);
@@ -181,10 +176,10 @@ const faqs = [
     color: var(--ink);
     transition: border-color var(--dur-fast) var(--ease);
   }
-  .pillar:hover, .pillar:focus-visible { border-color: var(--rust); }
-  .pillar:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .space:hover, .space:focus-visible { border-color: var(--rust); }
+  .space:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 
-  .pillar__n {
+  .space__n {
     display: block;
     font-family: var(--font-mono);
     font-size: 11px;
@@ -192,7 +187,7 @@ const faqs = [
     color: var(--ochre);
     margin-bottom: var(--s-2);
   }
-  .pillar__title {
+  .space__title {
     display: block;
     font-family: var(--font-display);
     font-weight: 500;
@@ -200,8 +195,8 @@ const faqs = [
     letter-spacing: var(--tracking-tight);
     margin-bottom: var(--s-2);
   }
-  .pillar:hover .pillar__title { text-decoration: underline; text-decoration-color: var(--rust); text-underline-offset: 4px; }
-  .pillar__blurb {
+  .space:hover .space__title { text-decoration: underline; text-decoration-color: var(--rust); text-underline-offset: 4px; }
+  .space__blurb {
     display: block;
     font-size: var(--step--1);
     color: var(--ink-2);
@@ -242,49 +237,6 @@ const faqs = [
     margin-bottom: var(--s-2);
   }
   .step__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
-
-  /* ── Every pillar, unpacked ──────────────────────────────────── */
-  .detail {
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: var(--s-8) var(--s-5);
-  }
-  .detail h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
-
-  .detail__grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--s-6) var(--s-5);
-  }
-  @media (max-width: 700px) { .detail__grid { grid-template-columns: 1fr; } }
-
-  .detail__group h3 {
-    margin: 0 0 var(--s-3);
-    font-family: var(--font-display);
-    font-weight: 500;
-    font-size: var(--step-0);
-    letter-spacing: var(--tracking-tight);
-    color: var(--ink);
-    border-bottom: 1px solid var(--paper-3);
-    padding-bottom: var(--s-2);
-  }
-  .detail__group dl { margin: 0; }
-  .detail__row { margin-bottom: var(--s-3); }
-  .detail__row:last-child { margin-bottom: 0; }
-  .detail__row dt {
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    text-transform: uppercase;
-    letter-spacing: .07em;
-    color: var(--rust);
-    margin-bottom: 2px;
-  }
-  .detail__row dd {
-    margin: 0;
-    font-size: var(--step--1);
-    color: var(--ink-2);
-    line-height: 1.5;
-  }
 
   /* ── FAQ ─────────────────────────────────────────────────────── */
   .faq {
@@ -357,4 +309,99 @@ const faqs = [
     color: var(--paper);
   }
   .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  /* ── Pricing ─────────────────────────────────────────────────── */
+  .pricing {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+    text-align: center;
+  }
+  .pricing h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .pricing__seo { max-width: 640px; margin: 0 auto var(--s-8); }
+  .pricing__intro {
+    margin: 0 0 var(--s-3);
+    font-size: var(--step-0);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .pricing__intro:last-of-type { margin-bottom: var(--s-6); }
+
+  .pricing__rate {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--s-2);
+    padding: var(--s-6) var(--s-7);
+    border: 2px solid var(--rust);
+    border-radius: var(--radius-md);
+  }
+  .pricing__rate-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .pricing__rate-value {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-3);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+  }
+  .pricing__rate-dash { margin: 0 .1em; color: var(--ink-3); }
+  .pricing__rate-unit { font-size: var(--step-0); font-weight: 500; color: var(--ink-2); margin-left: 2px; }
+  .pricing__rate-caption { margin: 0; font-size: 12px; color: var(--ink-3); }
+
+  .pricing__subhead {
+    margin: 0 0 var(--s-2);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-2);
+    letter-spacing: var(--tracking-tight);
+  }
+  .pricing__subhead-lede {
+    margin: 0 0 var(--s-6);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  .pricing__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-4);
+    margin-bottom: var(--s-3);
+    text-align: left;
+  }
+  @media (max-width: 700px) { .pricing__grid { grid-template-columns: 1fr; } }
+
+  .pricing__card {
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-4);
+    border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm);
+  }
+  .pricing__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+  }
+  .pricing__price {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: var(--s-1) 0 var(--s-2);
+  }
+  .pricing__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
+
+  .pricing__note { margin: 0 0 var(--s-5); font-size: 12px; color: var(--ink-3); }
+  .pricing__link { color: var(--rust); text-decoration: none; font-size: var(--step--1); }
+  .pricing__link:hover { text-decoration: underline; text-underline-offset: 4px; }
 </style>

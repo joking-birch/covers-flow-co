@@ -9,7 +9,7 @@
  * item is hovered. The plan is the diner in the hero, drawn in section:
  * three west rooms, the counter strip, the dining floor, the back door.
  */
-import { pillars } from '../data/pillars';
+import { spaces } from '../data/spaces';
 
 /* Plan geometry, all vmin, laid out on a 44 x 26 drawing. */
 const tableCols = [14.6, 18.8, 23, 27.2];
@@ -24,7 +24,7 @@ const arches = [3.4, 11, 18.6, 26.2, 33.8];
 const colDots = [3, 7.6, 12.2, 16.8, 21.4, 26, 30.6, 35.2, 39.8];
 const stools = Array.from({ length: 16 }, (_, i) => 2.2 + i * 2.5);
 
-/* Rooms, in draw order, each tied to the pillar that lives there. */
+/* Rooms, in draw order, each tied to the space that lives there. */
 const rooms = [
   { h: 1, left: 1, top: 1, w: 12, h_: 8, nx: 6.2, ny: 4.4 },
   { h: 2, left: 1, top: 9.6, w: 12, h_: 7.4, nx: 6.2, ny: 12.4 },
@@ -181,7 +181,7 @@ const levels = [
           </p>
 
           <nav class="nav">
-            {pillars.map((p, i) => (
+            {spaces.map((p, i) => (
               <a href={`/${p.slug}`} class="nav__item" data-hi={i + 1}>
                 <span class="nav__n">{p.n}</span>
                 <span class="nav__label">{p.title}</span>
@@ -212,8 +212,11 @@ const levels = [
   .burger:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
   .burger i {
     display: block; width: 22px; height: 1.5px; background: var(--ink);
-    transition: transform 420ms cubic-bezier(.16, 1, .3, 1);
+    transition: transform 420ms cubic-bezier(.16, 1, .3, 1), background-color 300ms ease;
   }
+  /* Reads as an X once open — colour it in the rust highlight so the close
+     control is unmistakable against the overlay. */
+  .burger[aria-expanded="true"] i { background: var(--rust); }
   .burger i:nth-child(1) {
     transform: translateY(calc(var(--open) * 3.75px)) rotate(calc(var(--open) * 45deg));
   }
@@ -246,6 +249,7 @@ const levels = [
   }
   .rays > div {
     position: absolute; left: 0; top: 0; width: 260vmax; height: 260vmax;
+    pointer-events: none;
     transform: translate(-50%, -50%);
     mask-composite: intersect; -webkit-mask-composite: source-in;
   }
@@ -498,6 +502,9 @@ const levels = [
       toggle.setAttribute('aria-expanded', String(v));
       toggle.setAttribute('aria-label', v ? 'Close menu' : 'Open menu');
       document.body.classList.toggle('menu-open', v);
+      // overflow:hidden alone doesn't stop Lenis (see Layout.astro) — it
+      // drives scroll via JS regardless of CSS overflow.
+      (window as any).lenis?.[v ? 'stop' : 'start']();
       behind.forEach((el) => { el.inert = v; });
       clearTimeout(hideT);
 

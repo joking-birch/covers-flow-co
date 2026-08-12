@@ -48,8 +48,23 @@ const {
 </html>
 
 <script>
-  const header = document.querySelector<HTMLElement>('.site-header');
+  import Lenis from 'lenis';
+
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  /* Lenis intercepts wheel/touch input to drive scroll smoothing itself, so
+     reduced-motion needs a hard skip here rather than relying on its own
+     respectReducedMotion option — that only short-circuits programmatic
+     scrollTo() jumps (anchor links), not everyday wheel scrolling. Exposed
+     on window so SiteMenu/IntroLoader can stop() it during their own
+     scroll locks — overflow:hidden alone doesn't stop Lenis, since it
+     drives scroll via JS regardless of CSS overflow. */
+  if (!reduceMotion.matches) {
+    const lenis = new Lenis({ autoRaf: true });
+    (window as any).lenis = lenis;
+  }
+
+  const header = document.querySelector<HTMLElement>('.site-header');
 
   if (header && !reduceMotion.matches) {
     const THRESHOLD = 8; // px of scroll movement before reacting, ignores jitter
@@ -104,7 +119,12 @@ const {
     padding: 0 var(--s-5);
     background: var(--paper);
     border-bottom: 1px solid rgb(216 207 188 / calc(1 - var(--open)));
-    transform: translateY(0);
+    /* No transform in the base state on purpose: SiteMenu's full-viewport
+       overlay is position:fixed and lives inside this header in the DOM —
+       any transform here (even translateY(0)) makes it a containing block,
+       which traps that fixed overlay to the header's own box instead of the
+       viewport. Only --hidden (below) sets one, while the header (and its
+       burger toggle) is off-screen anyway. */
     transition: transform var(--dur-fast) var(--ease);
   }
   /* Tucked out of view while scrolling down; rolls back on scroll-up or

@@ -33,6 +33,9 @@ import FlowMark from './FlowMark.astro';
       loader.remove();
     } else {
       document.body.classList.add('loading');
+      // overflow:hidden alone doesn't stop Lenis (see Layout.astro) — it
+      // drives scroll via JS regardless of CSS overflow.
+      (window as any).lenis?.stop();
 
       const bg = loader.querySelector<HTMLElement>('[data-loader-bg]')!;
       const logo = loader.querySelector<HTMLElement>('[data-loader-logo]')!;
@@ -64,6 +67,7 @@ import FlowMark from './FlowMark.astro';
           if (done) return;
           done = true;
           document.body.classList.remove('loading');
+          (window as any).lenis?.start();
           loader.remove();
         };
         bg.addEventListener('transitionend', finish, { once: true });
