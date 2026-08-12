@@ -1,0 +1,406 @@
+---
+const plans = [
+  {
+    id: 'standard',
+    title: 'Standard',
+    price: '$899',
+    body: '3 pages: Home, Menu, Contact.',
+  },
+  {
+    id: 'mid-tier',
+    title: 'Mid-tier',
+    price: 'Contact for pricing',
+    body: '4 pages: Standard, plus About, with bios for chefs, managers, and owners. Includes a menu-update service for restaurants with revolving menus.',
+  },
+];
+---
+
+<section class="quickstart">
+  <div class="quickstart__inner">
+    <p class="quickstart__line">Not sure where you stand? Get a free website audit.</p>
+    <button type="button" class="quickstart__toggle" data-qs-toggle aria-expanded="false" aria-controls="quickstart-panel">
+      Get Started
+    </button>
+
+    <div class="quickstart__grow" data-qs-grow>
+      <div class="quickstart__panel" id="quickstart-panel" data-qs-panel data-step="gate">
+
+        <div class="qs-step" data-qs-step="gate">
+          <p class="qs-step__prompt">Do you currently have a website?</p>
+          <div class="qs-step__actions">
+            <button type="button" class="btn btn--outline" data-qs-goto="audit">Yes</button>
+            <button type="button" class="btn btn--outline" data-qs-goto="plans">No</button>
+          </div>
+        </div>
+
+        <div class="qs-step" data-qs-step="audit">
+          <h3>Let's take a look</h3>
+          <p class="qs-step__lead">Tell us where to find you and what you're working with.</p>
+        </div>
+
+        <div class="qs-step" data-qs-step="plans">
+          <h3>Let's build one</h3>
+          <div class="qs-plans">
+            {plans.map((p) => (
+              <button type="button" class="qs-plan" data-qs-plan={p.id} data-qs-goto="contact">
+                <span class="qs-plan__title">{p.title}</span>
+                <span class="qs-plan__price">{p.price}</span>
+                <span class="qs-plan__body">{p.body}</span>
+              </button>
+            ))}
+          </div>
+          <p class="qs-plans__note">Both plans include a year of updates, up to 2 revisions a month.</p>
+          <div class="qs-custom">
+            <p>Something bigger in mind? Let's talk design.</p>
+            <button type="button" class="btn btn--outline" data-qs-plan="custom" data-qs-goto="contact">
+              Schedule a design call
+            </button>
+          </div>
+        </div>
+
+        <div class="qs-step" data-qs-step="contact">
+          <h3 data-qs-contact-heading>Tell us where to reach you</h3>
+          <p class="qs-step__lead" data-qs-contact-lead></p>
+        </div>
+
+        <div class="qs-step" data-qs-step="done">
+          <h3>Thanks, we'll be in touch.</h3>
+          <p class="qs-step__lead">
+            You can also reach us directly at
+            <a href="mailto:ian@ianwhitewrites.com">info@coversflow.co</a>.
+          </p>
+        </div>
+
+        <!-- Single form, all fields always present (Netlify scans the built static HTML for this),
+             visibility of individual fields is driven by data-step below. -->
+        <form
+          name="intake"
+          method="POST"
+          data-netlify="true"
+          data-netlify-honeypot="bot-field"
+          data-qs-form
+        >
+          <input type="hidden" name="form-name" value="intake" />
+          <input type="hidden" name="path" data-qs-path value="" />
+          <p class="qs-honeypot" aria-hidden="true">
+            <label>Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+          </p>
+
+          <div class="qs-fields">
+            <label class="qs-field">
+              <span>Name</span>
+              <input type="text" name="name" required />
+            </label>
+            <label class="qs-field">
+              <span>Business name</span>
+              <input type="text" name="business" required />
+            </label>
+            <label class="qs-field">
+              <span>Email</span>
+              <input type="email" name="email" required />
+            </label>
+            <label class="qs-field">
+              <span>Phone</span>
+              <input type="tel" name="phone" />
+            </label>
+            <label class="qs-field qs-field--website" data-qs-field="website">
+              <span>Website URL</span>
+              <input type="url" name="website" placeholder="https://" />
+            </label>
+            <label class="qs-field qs-field--wide">
+              <span>Message</span>
+              <textarea name="message" rows="3"></textarea>
+            </label>
+          </div>
+
+          <div class="qs-fields__actions" data-qs-field="submit">
+            <button type="submit" class="btn" data-qs-submit>Request my free audit</button>
+          </div>
+        </form>
+
+        <p class="qs-error" data-qs-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.quickstart');
+  if (root) {
+    const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
+    const grow = root.querySelector<HTMLElement>('[data-qs-grow]')!;
+    const panel = root.querySelector<HTMLElement>('[data-qs-panel]')!;
+    const form = root.querySelector<HTMLFormElement>('[data-qs-form]')!;
+    const pathInput = root.querySelector<HTMLInputElement>('[data-qs-path]')!;
+    const websiteField = root.querySelector<HTMLElement>('[data-qs-field="website"]')!;
+    const submitBtn = root.querySelector<HTMLButtonElement>('[data-qs-submit]')!;
+    const contactHeading = root.querySelector<HTMLElement>('[data-qs-contact-heading]')!;
+    const contactLead = root.querySelector<HTMLElement>('[data-qs-contact-lead]')!;
+    const errorMsg = root.querySelector<HTMLElement>('[data-qs-error]')!;
+
+    const copyByPath: Record<string, { heading: string; lead: string; submit: string }> = {
+      audit: {
+        heading: 'Let’s take a look',
+        lead: 'Tell us where to find you and what you’re working with.',
+        submit: 'Request my free audit',
+      },
+      standard: {
+        heading: 'Great, tell us where to reach you',
+        lead: 'You picked Standard. We’ll follow up to get started.',
+        submit: 'Get in touch',
+      },
+      'mid-tier': {
+        heading: 'Great, tell us where to reach you',
+        lead: 'You picked Mid-tier. We’ll follow up to get started.',
+        submit: 'Get in touch',
+      },
+      custom: {
+        heading: 'Let’s talk design',
+        lead: 'Tell us where to reach you and we’ll set up a call.',
+        submit: 'Get in touch',
+      },
+    };
+
+    const setOpen = (v: boolean) => {
+      toggle.setAttribute('aria-expanded', String(v));
+      grow.classList.toggle('quickstart__grow--open', v);
+    };
+
+    toggle.addEventListener('click', () => {
+      const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+      setOpen(!isOpen);
+    });
+
+    const goto = (step: string) => {
+      panel.dataset.step = step;
+      const isAudit = step === 'audit';
+      const isContact = step === 'contact';
+      websiteField.hidden = !isAudit;
+      const websiteInput = websiteField.querySelector('input');
+      if (websiteInput) (websiteInput as HTMLInputElement).required = false;
+
+      if (isAudit) {
+        pathInput.value = 'audit';
+        submitBtn.textContent = copyByPath.audit.submit;
+      } else if (isContact) {
+        const path = pathInput.value || 'standard';
+        const copy = copyByPath[path] ?? copyByPath.standard;
+        contactHeading.textContent = copy.heading;
+        contactLead.textContent = copy.lead;
+        submitBtn.textContent = copy.submit;
+      }
+    };
+
+    root.querySelectorAll<HTMLElement>('[data-qs-goto]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const plan = el.getAttribute('data-qs-plan');
+        if (plan) pathInput.value = plan;
+        goto(el.getAttribute('data-qs-goto')!);
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.hidden = true;
+      submitBtn.disabled = true;
+      const body = new URLSearchParams(new FormData(form) as any).toString();
+      try {
+        const res = await fetch('/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body,
+        });
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        goto('done');
+      } catch {
+        errorMsg.hidden = false;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+</script>
+
+<style>
+  .quickstart {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--s-6) var(--s-5) 0;
+  }
+  .quickstart__inner { text-align: center; }
+  .quickstart__line {
+    margin: 0 0 var(--s-3);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  .quickstart__toggle {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-0);
+    letter-spacing: var(--tracking-tight);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .quickstart__toggle:hover, .quickstart__toggle:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .quickstart__toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  /* Grid-row trick: animates to auto-content height without JS measuring. */
+  .quickstart__grow {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .quickstart__grow--open { grid-template-rows: 1fr; }
+  .quickstart__panel {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .qs-step {
+    display: none;
+    max-width: 640px;
+    margin: var(--s-6) auto 0;
+    text-align: left;
+  }
+  [data-step='gate'] .qs-step[data-qs-step='gate'] { display: block; }
+  [data-step='audit'] .qs-step[data-qs-step='audit'] { display: block; }
+  [data-step='plans'] .qs-step[data-qs-step='plans'] { display: block; }
+  [data-step='contact'] .qs-step[data-qs-step='contact'] { display: block; }
+  [data-step='done'] .qs-step[data-qs-step='done'] { display: block; text-align: center; }
+
+  .qs-step h3 {
+    margin: 0 0 var(--s-2);
+    font-size: var(--step-2);
+    letter-spacing: var(--tracking-tight);
+  }
+  .qs-step__lead { margin: 0 0 var(--s-4); color: var(--ink-2); font-size: var(--step--1); }
+  .qs-step__prompt {
+    margin: 0 0 var(--s-3);
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    text-align: center;
+  }
+  .qs-step__actions { display: flex; gap: var(--s-3); justify-content: center; }
+
+  .btn, .btn--outline {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible, .btn--outline:hover, .btn--outline:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .btn:focus-visible, .btn--outline:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  .qs-plans {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--s-4);
+    margin-bottom: var(--s-3);
+  }
+  @media (max-width: 560px) { .qs-plans { grid-template-columns: 1fr; } }
+
+  .qs-plan {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    padding: var(--s-4);
+    border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: border-color var(--dur-fast) var(--ease);
+  }
+  .qs-plan:hover, .qs-plan:focus-visible { border-color: var(--rust); }
+  .qs-plan:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .qs-plan__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+  }
+  .qs-plan__price {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: var(--s-1) 0 var(--s-2);
+  }
+  .qs-plan__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
+
+  .qs-plans__note { margin: 0 0 var(--s-5); font-size: 12px; color: var(--ink-3); }
+
+  .qs-custom {
+    padding-top: var(--s-4);
+    border-top: 1px solid var(--paper-3);
+    text-align: center;
+  }
+  .qs-custom p { margin: 0 0 var(--s-3); font-size: var(--step--1); color: var(--ink-2); }
+
+  .qs-honeypot { position: absolute; left: -9999px; }
+
+  .qs-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--s-3) var(--s-4);
+    margin-top: var(--s-4);
+  }
+  @media (max-width: 560px) { .qs-fields { grid-template-columns: 1fr; } }
+  .qs-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .qs-field--wide { grid-column: 1 / -1; }
+  .qs-field[hidden] { display: none; }
+  .qs-field input, .qs-field textarea {
+    font: inherit;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .qs-field input:focus-visible, .qs-field textarea:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 1px;
+  }
+
+  .qs-fields__actions { margin-top: var(--s-4); text-align: center; }
+
+  .qs-error { margin-top: var(--s-3); color: var(--signal); font-size: var(--step--1); text-align: center; }
+
+  /* The contact step's fields live inside the always-present <form>; only
+     show the shared field block for steps that actually collect contact
+     info (not gate/plans, which have their own controls). */
+  [data-step='gate'] .qs-fields,
+  [data-step='gate'] .qs-fields__actions,
+  [data-step='plans'] .qs-fields,
+  [data-step='plans'] .qs-fields__actions,
+  [data-step='done'] .qs-fields,
+  [data-step='done'] .qs-fields__actions {
+    display: none;
+  }
+</style>

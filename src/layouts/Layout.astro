@@ -7,6 +7,7 @@ import '@fontsource/ibm-plex-mono/400.css';
 import '../styles/tokens.css';
 import '../styles/global.css';
 import SiteMenu from '../components/SiteMenu.astro';
+import FlowMark from '../components/FlowMark.astro';
 
 interface Props {
   title?: string;
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const {
-  title = 'CoversFlow — SEO for hospitality',
+  title = 'CoversFlow: SEO for hospitality',
   description = 'CoversFlow is an SEO agency for restaurants and hospitality. Six places to look, all of them in one room.',
 } = Astro.props;
 ---
@@ -31,20 +32,54 @@ const {
   <body>
     <div class="site">
     <header class="site-header">
-      <a href="/" class="wordmark">
-        <span class="mark mark--inline" aria-hidden="true"><i></i><i></i><i></i></span>
-        Covers<em>Flow</em>
+      <a href="/" class="wordmark" data-header-logo>
+        <span class="wordmark__covers">Covers</span>
+        <FlowMark />
       </a>
       <SiteMenu />
     </header>
     <slot />
     <footer class="site-footer">
-      <p>CoversFlow — SEO for hospitality</p>
-      <p class="site-footer__meta">Somebody is always open.</p>
+      <p>CoversFlow: SEO for hospitality</p>
+      <p class="site-footer__meta">Ranked. Reserved. Repeat.</p>
     </footer>
     </div>
   </body>
 </html>
+
+<script>
+  const header = document.querySelector<HTMLElement>('.site-header');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  if (header && !reduceMotion.matches) {
+    const THRESHOLD = 8; // px of scroll movement before reacting, ignores jitter
+    const IDLE_MS = 200; // roll back down this long after scrolling stops
+    let lastY = window.scrollY;
+    let idleT: ReturnType<typeof setTimeout>;
+
+    const show = () => header.classList.remove('site-header--hidden');
+    const hide = () => header.classList.add('site-header--hidden');
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+
+      if (y <= header.offsetHeight) {
+        show();
+      } else if (delta > THRESHOLD) {
+        hide();
+      } else if (delta < -THRESHOLD) {
+        show();
+      }
+
+      lastY = y;
+      clearTimeout(idleT);
+      idleT = setTimeout(show, IDLE_MS);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+</script>
 
 <style>
   /* Everything lives in a centered column; past 1600px the paper ground
@@ -52,12 +87,15 @@ const {
   .site { max-width: 1600px; margin: 0 auto; }
 
   /* 62px header height is load-bearing: NighthawksHero's stage max-width
-     calc assumes it. Change both together or the hero over/undershoots. */
+     calc assumes it. Change both together or the hero over/undershoots.
+     position: sticky keeps it in normal flow (unlike fixed/absolute), so
+     that calc stays valid even though the header now stays pinned. */
   /* Sits above the menu overlay (z 50) so the burger stays clickable to
      close; the rule and wordmark fade out so the header reads as part of
      the overlay while it's open. */
   .site-header {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 60;
     height: 62px;
     display: flex;
@@ -66,11 +104,18 @@ const {
     padding: 0 var(--s-5);
     background: var(--paper);
     border-bottom: 1px solid rgb(216 207 188 / calc(1 - var(--open)));
+    transform: translateY(0);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  /* Tucked out of view while scrolling down; rolls back on scroll-up or
+     once scrolling comes to rest (see the scroll listener below). */
+  .site-header--hidden {
+    transform: translateY(-100%);
   }
   .wordmark {
     display: flex;
     align-items: center;
-    gap: var(--s-3);
+    gap: 0.16em;
     font-family: var(--font-display);
     font-weight: 700;
     font-size: var(--step-1);
@@ -80,8 +125,7 @@ const {
     opacity: calc(1 - var(--open));
     transition: opacity 400ms ease;
   }
-  .wordmark em { font-style: normal; color: var(--rust); }
-  .mark--inline { margin-bottom: 0; }
+  .wordmark__covers { display: block; }
 
   .site-footer {
     background: var(--night);

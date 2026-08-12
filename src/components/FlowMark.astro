@@ -1,0 +1,43 @@
+---
+/**
+ * FlowMark.astro — the "FLOW" wordmark: letters double as arrows (arrow-tipped
+ * F, circular-arrow O, double-headed arrow underline). Sized in em relative to
+ * the parent's font-size — drop in at any scale (header wordmark, loader).
+ * Source: CoversFlow Logo.dc.html.
+ */
+---
+
+<svg
+  class="flow-mark"
+  viewBox="18 -14 668 186"
+  aria-hidden="true"
+  xmlns="http://www.w3.org/2000/svg"
+>
+  <g fill="none" stroke="var(--rust)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 150 12 L 82 12 C 73 12 66 17 66 26 L 66 84 C 66 104 58 114 46 112"></path>
+    <path d="M 66 64 L 118 64"></path>
+    <path d="M 246 12 L 246 94 C 246 102 252 108 260 108 L 318 108"></path>
+    <circle cx="412" cy="60" r="48"></circle>
+    <path d="M 506 12 L 538 108 L 578 24 L 618 108 L 650 12"></path>
+  </g>
+  <g fill="none" stroke="var(--rust)" stroke-width="9" stroke-linecap="round">
+    <path stroke-linecap="butt" d="M 429.3 70 A 20 20 0 0 1 392 60 A 20 20 0 0 1 429.3 50"></path>
+    <path d="M 90 152 L 646 152"></path>
+  </g>
+  <g fill="var(--rust)" stroke="none">
+    <path d="M 194 12 L 150 -14 L 150 38 Z"></path>
+    <path d="M 158 64 L 116 42 L 116 86 Z"></path>
+    <path d="M 435.8 61.3 L 421.9 54.3 L 436.7 45.8 Z"></path>
+    <path d="M 62 152 L 90 139 L 90 165 Z"></path>
+    <path d="M 674 152 L 646 139 L 646 165 Z"></path>
+  </g>
+</svg>
+
+<style>
+  .flow-mark {
+    width: 3.8967em;
+    height: 1.085em;
+    overflow: visible;
+    display: block;
+  }
+</style>

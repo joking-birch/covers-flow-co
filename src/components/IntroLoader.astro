@@ -1,0 +1,133 @@
+---
+/**
+ * IntroLoader.astro — homepage-only splash. Full-viewport cream panel with
+ * the logo centered and a loading bar; holds for a beat, then the logo FLIPs
+ * (measured against the real header logo's position, so it lands exactly
+ * right at any viewport size) onto the header while the panel rolls up and
+ * away. Locks scroll + hero interaction (see body.loading in global.css)
+ * until it finishes. Runs once per browser session (sessionStorage).
+ */
+import FlowMark from './FlowMark.astro';
+---
+
+<div class="loader" data-loader>
+  <div class="loader__bg" data-loader-bg>
+    <div class="loader__bar-wrap">
+      <div class="loader__bar"><div class="loader__bar-fill" data-loader-bar></div></div>
+    </div>
+  </div>
+  <div class="loader__logo" data-loader-logo aria-hidden="true">
+    <span class="loader__covers">Covers</span>
+    <FlowMark />
+  </div>
+</div>
+
+<script>
+  const loader = document.querySelector<HTMLElement>('[data-loader]');
+
+  if (loader) {
+    const SESSION_KEY = 'cf-intro-seen';
+    const HOLD_MS = 2200; // keep in sync with .loader__bar-fill's animation-duration
+
+    if (sessionStorage.getItem(SESSION_KEY)) {
+      loader.remove();
+    } else {
+      document.body.classList.add('loading');
+
+      const bg = loader.querySelector<HTMLElement>('[data-loader-bg]')!;
+      const logo = loader.querySelector<HTMLElement>('[data-loader-logo]')!;
+      const real = document.querySelector<HTMLElement>('[data-header-logo]');
+
+      const pageReady = new Promise<void>((resolve) => {
+        if (document.readyState === 'complete') resolve();
+        else window.addEventListener('load', () => resolve(), { once: true });
+      });
+      const hold = new Promise<void>((resolve) => setTimeout(resolve, HOLD_MS));
+
+      Promise.all([pageReady, hold]).then(() => {
+        if (real) {
+          const realRect = real.getBoundingClientRect();
+          const cloneRect = logo.getBoundingClientRect();
+          const scale = realRect.width / cloneRect.width;
+          const dx = realRect.left + realRect.width / 2 - (cloneRect.left + cloneRect.width / 2);
+          const dy = realRect.top + realRect.height / 2 - (cloneRect.top + cloneRect.height / 2);
+          logo.style.setProperty('--dx', `${dx}px`);
+          logo.style.setProperty('--dy', `${dy}px`);
+          logo.style.setProperty('--scale', String(scale));
+        }
+
+        loader.classList.add('is-leaving');
+        sessionStorage.setItem(SESSION_KEY, '1');
+
+        let done = false;
+        const finish = () => {
+          if (done) return;
+          done = true;
+          document.body.classList.remove('loading');
+          loader.remove();
+        };
+        bg.addEventListener('transitionend', finish, { once: true });
+        // Safety net: this gates scroll for the whole site, so it must never
+        // get stuck open if transitionend doesn't fire (backgrounded tab etc).
+        setTimeout(finish, 1500);
+      });
+    }
+  }
+</script>
+
+<style>
+  .loader__bg {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: var(--paper);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 750ms var(--ease) 150ms;
+  }
+  .loader.is-leaving .loader__bg { transform: translateY(-100%); }
+
+  .loader__bar-wrap { margin-top: 92px; }
+  .loader__bar {
+    width: 180px;
+    height: 2px;
+    background: var(--paper-3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .loader__bar-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--rust);
+    animation: loader-fill 2200ms var(--ease) forwards;
+  }
+  @keyframes loader-fill {
+    to { width: 100%; }
+  }
+
+  .loader__logo {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 501;
+    display: flex;
+    align-items: center;
+    gap: 0.16em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(26px, 4.5vw, 46px);
+    color: var(--ink);
+    transform: translate(-50%, -50%);
+    transition: transform 700ms var(--ease);
+    will-change: transform;
+  }
+  .loader.is-leaving .loader__logo {
+    transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(var(--scale, 1));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loader__bg, .loader__logo { transition-duration: .01ms; }
+    .loader__bar-fill { animation-duration: .01ms; }
+  }
+</style>

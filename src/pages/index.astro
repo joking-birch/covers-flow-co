@@ -1,11 +1,83 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import NighthawksHero from '../components/NighthawksHero.astro';
+import QuickstartForm from '../components/QuickstartForm.astro';
+import IntroLoader from '../components/IntroLoader.astro';
 import { pillars } from '../data/pillars';
+
+const steps = [
+  {
+    n: '01',
+    title: 'Walk the floor',
+    body: 'We sit in your seat first: search results, maps, reviews, the menu online versus the one on the table. A full audit of what a hungry stranger actually sees before they ever call.',
+  },
+  {
+    n: '02',
+    title: "Fix what's broken",
+    body: "Schema, speed, listings, the pages that should exist and don't. The unglamorous plumbing work, done once, done right.",
+  },
+  {
+    n: '03',
+    title: 'Keep the lights on',
+    body: 'Rankings move. Somebody opens across the street. We watch the map, adjust the work, and report in plain language.',
+  },
+];
+
+const serviceDetails: Record<string, string> = {
+  'Branded SERP': 'Own your name in search: your site, hours, and reviews outrank third-party listings when someone searches for you directly.',
+  'AI answer engines': "Show up when someone asks ChatGPT or Google's AI Overview where to eat, not just in ten blue links.",
+  'Entity & knowledge panel': 'Get the sidebar box right: hours, menu, and photos, all matching, all correct.',
+  'Keyword gap audit': "Find every search term the place down the street ranks for and you don't.",
+  'Content teardown': "See exactly what's on their pages that's winning, and where yours falls short.",
+  'Market share of search': 'Track how much of the local search results are actually yours, month over month.',
+  'Near-me intent': 'Rank for the searches that happen five minutes before someone walks in hungry.',
+  'Editorial & guides': "Get named in the 'best of' roundups and neighborhood guides people actually read.",
+  'Digital PR': "Earn the mentions and links that convince Google, and your guests, you're the real thing.",
+  'Review conversations': 'Reply to reviews like a person, not a template. Turn feedback into visible care.',
+  'Events & partnerships': "Use what's already happening in the room, from events and collabs to regulars, as search and link fuel.",
+  'Local link earning': 'Build the kind of local mentions that come from being part of the neighborhood, not from buying links.',
+  'Google Business Profile': "The single highest-leverage page you don't control unless someone's tending it.",
+  'Booking flow': 'From search result to seated, remove every extra tap in between.',
+  'Location pages': 'One page per location, built to rank, not just to exist.',
+  'Menu & recipe schema': 'Structured data so Google actually understands what you serve.',
+  'Site architecture': "A site that's easy to crawl is easy to find: structure work nobody sees, everyone benefits from.",
+  'Core Web Vitals': "Fast enough that a hungry phone doesn't give up and pick the next result.",
+};
+
+const faqs = [
+  {
+    q: 'How is this different from a generic SEO agency?',
+    a: 'We only work with restaurants and hospitality. The playbook, covering menus, maps, reviews, and foot traffic, is built for the room, not retrofitted from ecommerce.',
+  },
+  {
+    q: 'How long before we see results?',
+    a: 'Technical fixes and Google Business Profile changes can move within weeks. Rankings for competitive terms build over months. Anyone promising otherwise is selling something else.',
+  },
+  {
+    q: 'Do you write the content, or just the strategy?',
+    a: 'Both. We plan what needs to exist, then write it (pages, menus, location content) in a voice that sounds like the restaurant, not a template.',
+  },
+  {
+    q: "Will this help with AI search, like ChatGPT or Google's AI Overviews?",
+    a: 'Yes, it’s part of the same work. The signals that get a page ranked (clear structure, accurate facts, real authority) are largely the same ones that get it cited.',
+  },
+  {
+    q: 'What size restaurant is this for?',
+    a: 'One location or many, counter service or fine dining. The six pillars scale down or up; what changes is how much time each one gets.',
+  },
+  {
+    q: 'Do we need to sign a long contract?',
+    a: "CoversFlow is just getting off the ground, so terms are still being worked out. Reach out and we'll figure out what makes sense together.",
+  },
+];
 ---
 
 <Layout>
+  <IntroLoader />
+
   <NighthawksHero />
+
+  <QuickstartForm />
 
   <section class="pillars">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -21,6 +93,62 @@ import { pillars } from '../data/pillars';
         </li>
       ))}
     </ol>
+  </section>
+
+  <section class="steps">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>How it works</h2>
+    <ol class="steps__grid">
+      {steps.map((s) => (
+        <li class="step">
+          <span class="step__n">{s.n}</span>
+          <span class="step__title">{s.title}</span>
+          <span class="step__body">{s.body}</span>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="cta">
+    <div class="cta__inner">
+      <h2>Pull up a stool.</h2>
+      <p>CoversFlow is just getting the lights on. Reach out and let's talk about what's actually happening in your search results.</p>
+      <!-- Stand-in address: displays the coversflow.co brand address, actually delivers to ian@ianwhitewrites.com until that alias exists. -->
+      <a class="btn" href="mailto:ian@ianwhitewrites.com">info@coversflow.co</a>
+    </div>
+  </section>
+
+  <section class="detail">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>Every pillar, unpacked</h2>
+    <div class="detail__grid">
+      {pillars.map((p) => (
+        <div class="detail__group">
+          <h3>{p.title}</h3>
+          <dl>
+            {p.tags.map((t) => (
+              <div class="detail__row">
+                <dt>{t}</dt>
+                <dd>{serviceDetails[t]}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="faq">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <h2>Frequently Asked Questions</h2>
+    <div class="faq__list">
+      {faqs.map((f) => (
+        <details class="faq__item">
+          <summary>{f.q}</summary>
+          <p>{f.a}</p>
+        </details>
+      ))}
+    </div>
   </section>
 </Layout>
 
@@ -79,4 +207,154 @@ import { pillars } from '../data/pillars';
     color: var(--ink-2);
     line-height: 1.5;
   }
+
+  /* ── How it works ─────────────────────────────────────────────── */
+  .steps {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+  }
+  .steps h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .steps__grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--s-5);
+  }
+  @media (max-width: 900px) { .steps__grid { grid-template-columns: 1fr; } }
+
+  .step { display: flex; flex-direction: column; }
+  .step__n {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    color: var(--ochre);
+    margin-bottom: var(--s-2);
+  }
+  .step__title {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-1);
+    letter-spacing: var(--tracking-tight);
+    margin-bottom: var(--s-2);
+  }
+  .step__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
+
+  /* ── Every pillar, unpacked ──────────────────────────────────── */
+  .detail {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .detail h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .detail__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--s-6) var(--s-5);
+  }
+  @media (max-width: 700px) { .detail__grid { grid-template-columns: 1fr; } }
+
+  .detail__group h3 {
+    margin: 0 0 var(--s-3);
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-0);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    border-bottom: 1px solid var(--paper-3);
+    padding-bottom: var(--s-2);
+  }
+  .detail__group dl { margin: 0; }
+  .detail__row { margin-bottom: var(--s-3); }
+  .detail__row:last-child { margin-bottom: 0; }
+  .detail__row dt {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--rust);
+    margin-bottom: 2px;
+  }
+  .detail__row dd {
+    margin: 0;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ── FAQ ─────────────────────────────────────────────────────── */
+  .faq {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+  }
+  .faq h2 { margin: 0 0 var(--s-6); font-size: var(--step-3); }
+
+  .faq__list { display: flex; flex-direction: column; gap: var(--s-3); }
+  .faq__item {
+    border: 1px dashed var(--paper-3);
+    border-radius: var(--radius-sm);
+    padding: var(--s-4);
+  }
+  .faq__item summary {
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: var(--step-0);
+    letter-spacing: var(--tracking-tight);
+    list-style: none;
+  }
+  .faq__item summary::-webkit-details-marker { display: none; }
+  .faq__item summary::before {
+    content: '+';
+    display: inline-block;
+    width: 1em;
+    color: var(--rust);
+  }
+  .faq__item[open] summary::before { content: '–'; }
+  .faq__item summary:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .faq__item p {
+    margin: var(--s-3) 0 0 1em;
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* ── CTA banner ──────────────────────────────────────────────── */
+  .cta { background: var(--paper-2); }
+  .cta__inner {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+    text-align: center;
+  }
+  .cta h2 { margin: 0 0 var(--s-3); font-size: var(--step-3); }
+  .cta p {
+    margin: 0 0 var(--s-5);
+    font-size: var(--step-0);
+    color: var(--ink-2);
+    line-height: 1.6;
+  }
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 </style>

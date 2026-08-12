@@ -21,6 +21,11 @@
 
 body.menu-open { overflow: hidden; }
 
+/* Set by IntroLoader.astro while the intro plays; blocks scroll and hero
+   hotspot interaction until the reveal animation finishes. */
+body.loading { overflow: hidden; }
+body.loading .hero { pointer-events: none; }
+
 body {
   margin: 0;
   background: var(--paper);

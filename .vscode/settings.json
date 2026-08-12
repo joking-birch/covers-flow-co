@@ -1,0 +1,4 @@
+{
+  "breadcrumbs.enabled": true,
+  "window.title": "${activeEditorMedium}${separator}${rootName}"
+}
