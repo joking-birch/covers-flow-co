@@ -44,6 +44,7 @@ const {
     <footer class="site-footer">
       <p>CoversFlow: SEO for hospitality</p>
       <p class="site-footer__meta">Ranked. Reserved. Repeat.</p>
+      <nav class="site-footer__nav"><a href="/about">About</a></nav>
     </footer>
     </div>
   </body>
@@ -163,4 +164,13 @@ const {
     font-size: 11px;
     margin-top: var(--s-2);
   }
+  .site-footer__nav { margin-top: var(--s-4); }
+  .site-footer__nav a {
+    color: var(--paper-2);
+    font-size: var(--step--1);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .site-footer__nav a:hover, .site-footer__nav a:focus-visible { border-bottom-color: var(--rust); }
+  .site-footer__nav a:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 </style>
