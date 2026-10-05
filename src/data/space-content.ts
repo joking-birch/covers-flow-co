@@ -1,7 +1,12 @@
 /* Per-space page content, keyed by slug. [space].astro falls back to a plain
    placeholder for any slug not listed here — all six spaces now have an
    entry, so that fallback is currently unused. Keep claims general and
-   defensible — no invented stats or results; the site has none yet. */
+   defensible — no invented stats or results; the site has none yet.
+
+   Voice: see docs/brand.md §3. "We" framing (deliberate — not the doc's own
+   "I" recommendation, overridden per direction). 70% operator / 30%
+   technical: every technical term earns its place by being cashed out in an
+   operational consequence, not stacked for its own sake. No agency-speak. */
 export interface SpaceSignal {
   title: string;
   body: string;
@@ -21,7 +26,7 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Own the branded search',
-        body: "When someone searches your restaurant's name directly, your own site, hours, and reviews should be what shows up, not a third-party listing guessing at your hours, or someone else's ad sitting above your name.",
+        body: "When someone searches your restaurant's name directly, we make sure it's your site, your hours, your reviews that show up, not a third-party listing guessing at your hours, or someone else's ad sitting above your name.",
         checklist: [
           'Your website ranks first for searches of your own name',
           'Hours, address, and phone match across every listing',
@@ -30,7 +35,7 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
       },
       {
         title: 'Show up in AI answers, not just search results',
-        body: "A growing share of searches now happen inside tools like ChatGPT and Google's AI Overviews, where there's no page two, just an answer. Getting cited there rests on the same fundamentals as ranking: clear structure, accurate facts, real authority.",
+        body: "A growing share of searches now happen inside tools like ChatGPT and Google's AI Overviews, where there's no page two, just an answer. We build for that the same way we build for ranking: clear structure, accurate facts, real authority. That's what gets a page cited instead of skipped.",
         checklist: [
           'Content structured so AI tools can read and cite it accurately',
           'Hours, menu, and location consistent enough to be trusted',
@@ -39,7 +44,7 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
       },
       {
         title: 'Get the knowledge panel right',
-        body: "The box that shows up next to your search results, hours, photos, menu link, review score, is often the first thing a hungry stranger actually looks at. If it's wrong or incomplete, it costs you before they ever reach your site.",
+        body: "The box next to your search results, hours, photos, menu link, review score, is often the first thing a hungry stranger actually looks at. We build it out, keep it current, and clean up every duplicate or conflicting listing so it never costs you a guest before they reach your site.",
         checklist: [
           'Google Business Profile fully built out and verified',
           'Photos, categories, and details accurate and current',
@@ -55,29 +60,29 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: "Find the keywords they're winning and you're not",
-        body: 'A full keyword gap audit maps every search term your closest local competitors rank for and you don\'t, from broad category terms down to the long-tail, high-intent searches that actually convert. Share of voice in local search is finite; every term they own is a term you can take.',
+        body: "The room down the street went dark on search long before anyone noticed the empty tables. We run the keyword gap audit that finds exactly which searches they still own, the broad terms and the long-tail ones that actually seat people, and build the plan to take them.",
         checklist: [
-          'Full keyword gap audit against your top local competitors',
-          "Long-tail, high-intent search terms mapped to pages that don't exist yet",
-          'Competitor backlink and citation profile benchmarked against yours',
+          'Every keyword the room down the street ranks for and you don’t, mapped and prioritized',
+          'Long-tail, high-intent searches turned into pages worth building',
+          'Their backlink and citation footprint sized up against yours',
         ],
       },
       {
         title: "Tear down what's actually working for them",
-        body: "A page-by-page content teardown shows exactly which on-page SEO signals, structured data, and content depth are earning a competitor their rankings, not guesswork. E-E-A-T, internal linking, and dwell time all get reverse-engineered into a plan for your own pages.",
+        body: "We don't guess why a competitor outranks you. We take their best page apart, structure, schema, how deep the content actually goes, and turn what's working for them into the blueprint for what we build for you.",
         checklist: [
-          'Page-by-page teardown of competitor content, structure, and schema',
-          'Content gaps mapped to new pages, menu descriptions, and location content',
-          'On-page SEO fundamentals (titles, headers, internal links) benchmarked against the field',
+          'A page-by-page teardown of what’s actually ranking for them',
+          'Content gaps turned into new pages, menu writing, and location content',
+          'Titles, headers, and internal links benchmarked against the field',
         ],
       },
       {
         title: 'Track market share of search, not just rankings',
-        body: "Rankings for a handful of keywords tell you less than share of search across your whole category. Monthly tracking of impression share, local pack visibility, and click-through rate turns search performance into a number tied to covers and revenue, not vanity metrics.",
+        body: "One keyword ranking tells you less than how much of the whole local search results you actually own. We track share of search and local pack visibility every month, and report it the way it matters to you, in covers, not charts.",
         checklist: [
-          'Monthly share-of-search reporting across your core local keywords',
-          'Local pack and map rankings tracked against named competitors',
-          'Clear, plain-language reporting tied to covers and revenue, not vanity metrics',
+          'Monthly share-of-search tracking across your core local keywords',
+          'Local pack and map rankings tracked against the competitors you actually compete with',
+          'Reporting tied to covers and revenue, not vanity metrics',
         ],
       },
     ],
@@ -89,29 +94,29 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Win the near-me, hungry-right-now search',
-        body: "Near-me searches and voice queries are high-intent and mobile-first: someone five minutes away, already deciding. Local landing pages built around that intent, backed by Core Web Vitals fast enough to hold a hungry phone's attention, are what turn that search into a seated guest.",
+        body: "A near-me search is someone five minutes away, already deciding, phone in hand. We build for that moment: local pages that match the intent, and a site fast enough that a hungry phone doesn't bounce to the next result before yours even loads.",
         checklist: [
-          'Optimized for "near me" and mobile voice search queries',
-          'Local landing pages built around high-intent, bottom-of-funnel search terms',
-          "Core Web Vitals tuned so a hungry phone doesn't bounce to a competitor",
+          'Built and optimized for "near me" and voice search queries',
+          'Local pages built around the exact intent of someone deciding right now',
+          'Site speed fast enough to hold a hungry phone’s attention',
         ],
       },
       {
         title: 'Get named in the guides people actually read',
-        body: 'Outreach to local food media, neighborhood blogs, and "best of" roundups builds the kind of topical authority and earned mentions that algorithms and AI answer engines both weigh heavily, well beyond what on-site optimization alone can deliver.',
+        body: "We pitch local food writers, neighborhood blogs, and the “best of” roundups people actually read, not for a passing mention, but for the kind of coverage that builds real authority and earns a link worth having.",
         checklist: [
-          'Outreach to local food media, bloggers, and "best of" roundup writers',
-          'Earned mentions that build topical authority and real backlinks',
-          'Press and guide placements tracked and reported monthly',
+          'Outreach to local food media and “best of” roundup writers',
+          'Mentions that build authority, not just visibility',
+          'Every placement tracked and reported, plainly',
         ],
       },
       {
         title: 'Build the backlinks that build authority',
-        body: "Digital PR campaigns designed around real stories, not link farms, convert brand mentions into indexable backlinks and steadily build domain authority. That authority compounds: it's the leading indicator that predicts where rankings go next.",
+        body: "We run digital PR the honest way, earning links through real coverage, not buying them. Every mention we land gets turned into an actual backlink, and we watch your domain authority climb as the leading sign that rankings are about to follow.",
         checklist: [
-          'Digital PR campaigns designed to earn links, not buy them',
-          'Brand mentions converted into real, indexable backlinks',
-          'Domain authority tracked as a leading indicator, not a vanity number',
+          'Digital PR built around real stories, not purchased links',
+          'Mentions converted into indexable backlinks',
+          'Authority tracked as the leading indicator it is',
         ],
       },
     ],
@@ -123,29 +128,29 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Turn reviews into a conversation, not a chore',
-        body: "Review velocity and star rating are a core local ranking signal, not just reputation management. Responding on brand, inside 48 hours, every time, turns an everyday chore into a visible signal of care, and turns a bad night into a public recovery story instead of a lost guest.",
+        body: "A review isn't a chore to clear at the end of a shift, it's a ranking signal and a public conversation. We answer every one, in your voice, inside 48 hours, and turn a bad night into a story about how you made it right instead of a reason to pick someone else.",
         checklist: [
-          'Every review responded to, on brand, inside 48 hours',
-          'Review velocity and star rating treated as a core local ranking signal',
-          'Negative reviews turned into visible, public recovery stories',
+          'Every review answered, on brand, inside 48 hours',
+          'Review velocity and rating treated as the ranking signal it is',
+          'Rough nights turned into visible, public recoveries',
         ],
       },
       {
         title: "Turn what's already happening into search fuel",
-        body: "Events, pop-ups, and partnerships already happening in the room are an underused source of structured data and co-marketing reach. Event schema markup and a simple content calendar turn the regulars and collabs you already have into ongoing local search and link fuel.",
+        body: "The event you're already running, the collab already on the calendar, that's marketing you haven't cashed in yet. We mark it up so Google can read it, and build the local partnerships that carry what's happening in the room out into the neighborhood.",
         checklist: [
-          'Events, pop-ups, and collabs structured with event schema markup',
-          'Local partnerships turned into co-marketing and cross-promotion',
-          'A content calendar that turns the regulars into your best marketing',
+          'Events and collabs structured so search engines can read them',
+          'Local partnerships turned into real cross-promotion',
+          'A simple calendar that keeps the momentum going, not just the one post',
         ],
       },
       {
         title: 'Earn local links the way you earn regulars',
-        body: "Local link building and citation consistency are slow, compounding work, the same way a regular becomes a regular. Clean NAP data across every directory and backlinks earned from genuine neighborhood sites outperform anything bought from a link farm, and they last.",
+        body: "A local link gets earned the same slow way a regular becomes a regular: show up, be worth mentioning, do it again. We clean up every listing of your name, address, and phone number, and build the kind of neighborhood links that actually hold.",
         checklist: [
-          'Local citation building across the directories that actually matter',
-          'NAP (name, address, phone) consistency audited and corrected everywhere',
-          'Backlinks earned from neighborhood sites, not bought from link farms',
+          'Citations cleaned up across the directories that matter',
+          'Name, address, and phone number consistent everywhere you’re listed',
+          'Links earned from real neighborhood sites, not bought in bulk',
         ],
       },
     ],
@@ -157,29 +162,29 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Make your Google Business Profile do the heavy lifting',
-        body: "Google Business Profile is the single highest-leverage page you don't control unless someone's actively tending it. Categories, attributes, posts, and Q&A kept current are what keep the knowledge panel and local pack working for you instead of against you.",
+        body: "Your Google Business Profile is the one page you don't control unless someone's actually tending it, and most restaurants leave it on autopilot. We keep it built out, current, and correct, hours, photos, menu link, the works, so the box next to your name never costs you a guest before they reach your site.",
         checklist: [
-          'Google Business Profile fully optimized: categories, attributes, services, and posts',
-          'Photos, menu links, and Q&A kept current so the knowledge panel never misleads',
-          'Local pack ranking tracked and improved month over month',
+          'Categories, attributes, services, and posts kept fully built out',
+          'Photos, menu links, and hours kept current the moment something changes',
+          'Local pack ranking tracked and pushed forward, month over month',
         ],
       },
       {
         title: 'Remove every tap between search result and seated',
-        body: "Conversion rate optimization applied to the booking flow finds exactly where mobile guests drop off between a search result and a seated table. A shorter, mobile-first path from tap to table turns search visibility you've already earned into covers you'd otherwise lose.",
+        body: "Every extra tap between a search result and a booked table is a guest who closes the tab instead of becoming a reservation, and eventually a turn. We walk the booking flow the way a guest actually would, on a phone, and strip out the friction until finding you and reserving a seat take about the same number of taps.",
         checklist: [
-          'Reservation and booking flow audited for friction and drop-off',
-          'Mobile-first design so the path from tap to table is as short as possible',
-          'Conversion rate optimization applied to every call-to-action on the site',
+          'Booking flow walked and audited for friction and drop-off',
+          'Mobile path from search result to reservation shortened',
+          'Every call-to-action checked for what it actually costs a guest to use',
         ],
       },
       {
         title: 'Build location pages that are built to rank',
-        body: "Multi-location sites that share one templated page per address leave rankings on the table. A dedicated page per location, built with LocalBusiness schema and accurate NAP data, targets the specific neighborhood and intent each location actually serves.",
+        body: "A shared template with the address swapped out doesn't rank for a neighborhood, it just exists there. We build a real page for each location, with the structured data and local facts that tell Google, and a guest, this is the one near them, not a copy of another one.",
         checklist: [
           'A dedicated, SEO-built page for every location, not a shared template',
-          'Location pages structured with LocalBusiness schema and accurate NAP data',
-          'Each location page targeting the specific neighborhood and intent it serves',
+          'Location data structured so search engines read it correctly',
+          'Each page built around the neighborhood and guest it actually serves',
         ],
       },
     ],
@@ -191,29 +196,29 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Structure your menu so Google actually understands it',
-        body: "Menu and recipe schema markup is structured data that tells Google exactly what you serve, down to the dish, price, and dietary tag, making your menu eligible for rich results instead of a plain link. Kept in sync the moment a dish or price changes, it never goes stale.",
+        body: "If your menu schema goes stale, the prix fixe you 86'd in March is still what Google shows in June. We structure your menu and recipes so search engines read them the way a guest would, the right dishes, the right prices, the right dietary tags, and keep it that way every time the kitchen changes something.",
         checklist: [
-          'Menu and recipe schema markup implemented so Google reads every dish',
-          'Structured data kept in sync the moment a dish or price changes',
-          'Rich results (prices, dietary tags, ratings) eligible in search, not just a link',
+          'Menu and recipe data structured so Google reads every dish correctly',
+          'Updated the moment a dish, price, or 86 changes',
+          'Eligible for the richer search listings a plain link never gets',
         ],
       },
       {
         title: "Build a site architecture that's easy to crawl",
-        body: "Clean site architecture and internal linking keep crawl budget focused on the pages that matter, instead of wasted on indexation bloat. A correctly configured XML sitemap and robots.txt make sure nothing important goes undiscovered by search engines.",
+        body: "A site Google can't crawl properly is a dining room with half the tables roped off. We clean up the structure and the internal links so every page that matters actually gets found, and nothing important goes undiscovered because of a missing sitemap or a dead end in the menu.",
         checklist: [
-          'Clean, flat site architecture that keeps crawl budget focused on what matters',
-          'Internal linking structured to pass authority to your highest-value pages',
-          'XML sitemap and robots.txt configured so nothing important goes unindexed',
+          'Site structure cleaned up so the pages that matter actually get crawled',
+          'Internal links pointed at your highest-value pages, not scattered',
+          'Sitemap and crawl instructions configured so nothing important is missed',
         ],
       },
       {
-        title: 'Make Core Web Vitals a ranking advantage, not a liability',
-        body: "Core Web Vitals (LCP, CLS, INP) are a confirmed ranking factor and a direct line to conversion rate: a slow mobile page loses hungry guests before they ever see the menu. Ongoing technical SEO monitoring keeps page speed and performance in the green, not just on launch day.",
+        title: 'Make site speed a ranking advantage, not a liability',
+        body: "A slow page loses a hungry phone before the menu even loads, and Google notices the same thing you would. We keep load speed and site performance in the green on the devices your guests actually use, and check it on a schedule, not just the day the site launched.",
         checklist: [
-          'Core Web Vitals (LCP, CLS, INP) monitored and kept in the green',
-          'Page speed optimized for the mobile connections your guests actually use',
-          'Technical SEO health checked on a recurring schedule, not just once',
+          'Site speed and performance monitored and kept in the green',
+          'Built for the mobile connections your guests actually use',
+          'Checked on a recurring schedule, not just once at launch',
         ],
       },
     ],
