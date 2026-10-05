@@ -8,12 +8,23 @@ const values = [
   'White-hat only, every time. No shortcut that mortgages next year for this month.',
   'The guest experience drives the plan. The metrics follow it, not the other way around.',
 ];
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: 'About', item: new URL('/about', Astro.site).toString() },
+  ],
+};
 ---
 
 <Layout
-  title="About — CoversFlow"
-  description="A diner lit up on an empty street corner has been read as a picture of loneliness for eighty years. We think that's backward — and it's the whole reason CoversFlow exists."
+  title="About CoversFlow | Restaurant & Hospitality SEO"
+  description="Twenty years on real restaurant floors, paired with technical SEO for restaurants and hospitality — why CoversFlow exists, and what we believe about togetherness."
 >
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+
   <article class="about">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
     <p class="kicker">About</p>

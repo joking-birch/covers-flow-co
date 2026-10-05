@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://coversflow.co/sitemap-index.xml

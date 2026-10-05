@@ -13,12 +13,27 @@ import FlowMark from '../components/FlowMark.astro';
 interface Props {
   title?: string;
   description?: string;
+  /** Path under public/, e.g. '/og-image.jpg'. Resolved to an absolute URL against astro.config's `site`. */
+  image?: string;
 }
 
 const {
-  title = 'CoversFlow: SEO for hospitality',
-  description = 'CoversFlow is an SEO agency for restaurants and hospitality. Six places to look, all of them in one room.',
+  title = 'CoversFlow — SEO & AI Search for Restaurants and Hospitality',
+  description = 'Technical SEO, Google Business Profile, and AI-search visibility for independent restaurants and hospitality groups. A free audit shows where you stand.',
+  image = '/og-image.jpg',
 } = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImageURL = new URL(image, Astro.site);
+
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'CoversFlow',
+  url: Astro.site?.toString(),
+  description: 'Technical SEO and AI-search visibility for independent restaurants and hospitality groups.',
+  email: 'info@coversflow.co',
+};
 ---
 
 <html lang="en">
@@ -28,7 +43,26 @@ const {
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href={canonicalURL} />
     <title>{title}</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CoversFlow" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImageURL} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageURL} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(organizationSchema)} />
+
     <ClientRouter />
   </head>
   <body>

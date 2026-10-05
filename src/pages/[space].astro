@@ -10,9 +10,20 @@ export function getStaticPaths() {
 
 const { p } = Astro.props;
 const hasContent = Boolean(spaceContent[p.slug]);
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: p.title, item: new URL(`/${p.slug}`, Astro.site).toString() },
+  ],
+};
 ---
 
-<Layout title={`${p.title} — CoversFlow`} description={p.blurb}>
+<Layout title={p.seoTitle} description={p.seoDescription}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+
   <article class="space-page" transition:name={p.slug === 'brand-visibility' ? 'space-hero' : undefined}>
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
     <p class="kicker">Space {p.n}</p>

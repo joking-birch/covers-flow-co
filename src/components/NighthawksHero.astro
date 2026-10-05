@@ -116,9 +116,9 @@ const css = spaces.map(p => `
     </div>
 
     <div class="intro">
-      <h1>Ranked. Reserved. Repeat.</h1>
+      <p class="intro__headline">Ranked. Reserved. Repeat.</p>
       <p class="intro__tagline">From Search to Seated.</p>
-      <p>CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</p>
+      <h1 class="intro__lede">CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</h1>
       <p class="intro__hint">Hover a figure to look closer</p>
     </div>
   </div>
@@ -215,12 +215,20 @@ const css = spaces.map(p => `
     max-width: 330px; transition: opacity .35s ease, transform var(--dur) ease;
   }
   .stage[data-active] .intro { opacity: 0; transform: translateY(10px); }
-  .intro h1 {
+  /* Visually this is the big poster line, but "Ranked. Reserved. Repeat."
+     carries no searchable keywords — the actual <h1> below is the sentence
+     that describes what CoversFlow does, kept at body-copy size. Tag and
+     visual size are deliberately decoupled here for SEO; see intro__lede. */
+  .intro .intro__headline {
     margin: 0 0 10px; font-family: var(--font-display); font-size: var(--step-4);
     line-height: 1.02; letter-spacing: var(--tracking-tight); max-width: 9ch;
     color: var(--paper); text-shadow: 0 2px 24px rgb(0 0 0 / .85);
   }
-  .intro p { margin: 0 0 6px; font-size: 14.5px; color: var(--paper-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9); }
+  .intro p, .intro .intro__lede {
+    margin: 0 0 6px; font-size: 14.5px; font-family: var(--font-body);
+    font-weight: 400; letter-spacing: normal; line-height: 1.5;
+    color: var(--paper-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9);
+  }
   /* Comes after (and repeats the .intro ancestor) so it outweighs .intro p's
      specificity above — otherwise that rule's color wins the cascade. */
   .intro .intro__tagline {

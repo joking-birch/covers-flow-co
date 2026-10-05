@@ -8,6 +8,9 @@ import PricingAuditForm from '../components/PricingAuditForm.astro';
 import { spaces } from '../data/spaces';
 import { plans, plansNote } from '../data/plans';
 
+const title = 'CoversFlow — SEO & AI Search for Restaurants and Hospitality';
+const description = 'Technical SEO, Google Business Profile, and AI-search visibility for independent restaurants and hospitality groups. A free audit shows where you stand.';
+
 const steps = [
   {
     n: '01',
@@ -52,9 +55,21 @@ const faqs = [
     a: "CoversFlow is just getting off the ground, so terms are still being worked out. Reach out and we'll figure out what makes sense together.",
   },
 ];
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+};
 ---
 
-<Layout>
+<Layout title={title} description={description}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(faqSchema)} />
+
   <IntroLoader />
 
   <NighthawksHero />
