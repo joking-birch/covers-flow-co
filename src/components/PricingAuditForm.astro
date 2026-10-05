@@ -1,0 +1,182 @@
+---
+/**
+ * PricingAuditForm.astro — the "Get my free audit" CTA inside the pricing
+ * card's rate box. Deliberately its own small self-contained box rather than
+ * routing into QuickstartForm's shared #get-started widget: that widget
+ * lives up under the hero, so reusing it here meant a jarring scroll-to-top
+ * out of the pricing section for what is, in practice, a separate flow
+ * (quoting ongoing SEO work, not the build-a-site plans QuickstartForm
+ * handles). Posts to its own Netlify form ("pricing-audit") so submissions
+ * from this box are distinguishable from the hero/quickstart flow, though
+ * both land on the same site-wide email notification.
+ */
+---
+<div class="pricing-audit" data-pa>
+  <button type="button" class="btn" data-pa-toggle aria-expanded="false" aria-controls="pricing-audit-panel">
+    Get my free audit
+  </button>
+
+  <div class="pricing-audit__grow" data-pa-grow>
+    <div class="pricing-audit__panel" id="pricing-audit-panel">
+      <form name="pricing-audit" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" data-pa-form>
+        <input type="hidden" name="form-name" value="pricing-audit" />
+        <p class="pa-honeypot" aria-hidden="true">
+          <label>Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+        </p>
+
+        <div class="pa-fields">
+          <label class="pa-field">
+            <span>Name</span>
+            <input type="text" name="name" required />
+          </label>
+          <label class="pa-field">
+            <span>Business name</span>
+            <input type="text" name="business" required />
+          </label>
+          <label class="pa-field">
+            <span>Email</span>
+            <input type="email" name="email" required />
+          </label>
+          <label class="pa-field">
+            <span>Phone</span>
+            <input type="tel" name="phone" />
+          </label>
+          <label class="pa-field">
+            <span>Website URL</span>
+            <input type="url" name="website" placeholder="https://" />
+          </label>
+          <label class="pa-field">
+            <span>Message</span>
+            <textarea name="message" rows="3"></textarea>
+          </label>
+        </div>
+
+        <button type="submit" class="btn pa-submit" data-pa-submit>Request my free audit</button>
+      </form>
+
+      <p class="pa-done" data-pa-done hidden>Thanks, we'll be in touch. You can also reach us directly at <a href="mailto:ian@ianwhitewrites.com">info@coversflow.co</a>.</p>
+      <p class="pa-error" data-pa-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* astro:page-load, not top-level: this module only executes once per
+     session (ES module caching), but ClientRouter lets a visitor return to
+     this page via soft navigation. Re-binding on every page-load event
+     (fired for the initial load too) is what makes the toggle and submit
+     work again on a revisit, not just the first time. */
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-pa]').forEach((root) => {
+      const toggle = root.querySelector<HTMLButtonElement>('[data-pa-toggle]')!;
+      const grow = root.querySelector<HTMLElement>('[data-pa-grow]')!;
+      const form = root.querySelector<HTMLFormElement>('[data-pa-form]')!;
+      const submitBtn = root.querySelector<HTMLButtonElement>('[data-pa-submit]')!;
+      const doneMsg = root.querySelector<HTMLElement>('[data-pa-done]')!;
+      const errorMsg = root.querySelector<HTMLElement>('[data-pa-error]')!;
+
+      toggle.addEventListener('click', () => {
+        const willOpen = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(willOpen));
+        grow.classList.toggle('pricing-audit__grow--open', willOpen);
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMsg.hidden = true;
+        submitBtn.disabled = true;
+        const body = new URLSearchParams(new FormData(form) as any).toString();
+        try {
+          const res = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+          });
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          form.hidden = true;
+          doneMsg.hidden = false;
+        } catch {
+          errorMsg.hidden = false;
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .pricing-audit { width: 100%; }
+
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* Grid-row trick: animates to auto-content height without JS measuring. */
+  .pricing-audit__grow {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .pricing-audit__grow--open { grid-template-rows: 1fr; }
+  .pricing-audit__panel { overflow: hidden; min-height: 0; }
+
+  .pa-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    width: 280px;
+    max-width: 100%;
+    margin: var(--s-5) auto 0;
+    text-align: left;
+  }
+  .pa-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .pa-field input, .pa-field textarea {
+    font: inherit;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .pa-field input:focus-visible, .pa-field textarea:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 1px;
+  }
+
+  .pa-honeypot { position: absolute; left: -9999px; }
+
+  .pa-submit { display: block; width: 100%; margin-top: var(--s-4); }
+
+  .pa-done, .pa-error {
+    margin: var(--s-5) 0 0;
+    font-size: var(--step--1);
+    max-width: 280px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .pa-done { color: var(--ink-2); }
+  .pa-done a { color: var(--rust); }
+  .pa-error { color: var(--signal); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pricing-audit__grow { transition-duration: .01ms; }
+  }
+</style>

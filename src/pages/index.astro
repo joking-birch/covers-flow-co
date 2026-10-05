@@ -4,6 +4,7 @@ import NighthawksHero from '../components/NighthawksHero.astro';
 import QuickstartForm from '../components/QuickstartForm.astro';
 import IntroLoader from '../components/IntroLoader.astro';
 import SpaceDetail from '../components/SpaceDetail.astro';
+import PricingAuditForm from '../components/PricingAuditForm.astro';
 import { spaces } from '../data/spaces';
 import { plans, plansNote } from '../data/plans';
 
@@ -111,7 +112,7 @@ const faqs = [
         <span class="pricing__rate-label">Typical for a single-location restaurant</span>
         <span class="pricing__rate-value">$500<span class="pricing__rate-dash">–</span>$1,200<span class="pricing__rate-unit">/mo</span></span>
         <p class="pricing__rate-caption">Final pricing is scoped after your free audit.</p>
-        <a class="btn" href="#get-started" data-qs-open-audit>Get my free audit</a>
+        <PricingAuditForm />
       </div>
     </div>
 
