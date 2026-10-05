@@ -220,6 +220,16 @@ import { plans, plansNote } from '../data/plans';
       });
     });
 
+    /* Same CTA also appears on the space and about pages (space-content.ts,
+       about.astro), where it links to "/#get-started" — a navigation to this
+       page, not a click here, so the listener above never fires. Catch that
+       arrival instead: a page-load that already carries the hash means a
+       visitor landed here specifically to start the audit. */
+    if (location.hash === '#get-started') {
+      setOpen(true);
+      goto('audit');
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorMsg.hidden = true;
