@@ -178,7 +178,7 @@ This is more credible than a padded restaurant client list, not less — it just
 The original combined list mixes two different relationships. Split them:
 
 **Strip A — "Twenty years on the floor across:"**
-1 Hotels · Union Square Hospitality Group · Jean-Georges Enterprises · La Salle Group · Corner Bistro · Barfly · EDO Hospitality Group · Compass Group USA
+1 Hotels · Union Square Hospitality Group · Jean-Georges Enterprises · La Salle Group · Corner Bistro · Bourbon Hospitality Group · EDO Hospitality Group · Compass Group USA
 
 **Strip B — "Technical work delivered for:"**
 Filson & Co. · Splash Fabrics · Desert Preservation Initiative · Kars 4 Kids · Verenorth · Van Strohm Photography · 100+ small businesses via ProSites Inc.

@@ -1,0 +1,104 @@
+---
+/**
+ * OperatorStrip.astro — plain-text, infinitely auto-scrolling strip of
+ * restaurant companies the site owner personally WORKED AT across a
+ * twenty-year floor career. Employment history, not a client-logo wall —
+ * see docs/brand.md §6. Never add logos: no employer image assets exist
+ * in this repo, and brand.md is explicit that marks here would read as
+ * implied endorsement. Do not merge in Strip B (technical/SEO clients).
+ */
+const label = 'Twenty years on the floor across:';
+const companies = [
+  '1 Hotels',
+  'Union Square Hospitality Group',
+  'Jean-Georges Enterprises',
+  'La Salle Group',
+  'Corner Bistro',
+  'Bourbon Hospitality Group',
+  'EDO Hospitality Group',
+  'Compass Group USA',
+];
+---
+
+<section class="operator-strip" aria-labelledby="operator-strip-label">
+  <div class="operator-strip__inner">
+    <p class="operator-strip__label" id="operator-strip-label">{label}</p>
+    <div class="operator-strip__viewport">
+      <div class="operator-strip__track">
+        <ul class="operator-strip__group">
+          {companies.map((c) => <li>{c}</li>)}
+        </ul>
+        <ul class="operator-strip__group" aria-hidden="true">
+          {companies.map((c) => <li>{c}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .operator-strip { background: var(--paper-2); }
+
+  .operator-strip__inner {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: var(--s-6) var(--s-5);
+  }
+
+  .operator-strip__label {
+    margin: 0 0 var(--s-4);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ochre);
+    text-align: center;
+  }
+
+  .operator-strip__viewport {
+    overflow: hidden;
+    width: 100%;
+    -webkit-mask-image: linear-gradient(to right, transparent, black var(--s-6), black calc(100% - var(--s-6)), transparent);
+    mask-image: linear-gradient(to right, transparent, black var(--s-6), black calc(100% - var(--s-6)), transparent);
+  }
+
+  /* Both groups render byte-identical content, so they're guaranteed equal
+     width — translateX(-50%) moves exactly one group-width, and the loop
+     point is visually seamless. No JS measuring needed. */
+  .operator-strip__track {
+    display: flex;
+    width: max-content;
+    animation: operator-scroll 32s linear infinite;
+  }
+  .operator-strip__viewport:hover .operator-strip__track { animation-play-state: paused; }
+
+  .operator-strip__group {
+    display: flex;
+    flex-shrink: 0;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .operator-strip__group li {
+    padding: 0 var(--s-4);
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+  .operator-strip__group li + li { border-left: 1px dashed var(--paper-3); }
+  /* Carries the divider rhythm across the seam between the real list and
+     its aria-hidden duplicate, so the loop shows no visual break. */
+  .operator-strip__group:nth-child(2) li:first-child { border-left: 1px dashed var(--paper-3); }
+
+  @keyframes operator-scroll {
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .operator-strip__track { animation: none; }
+    /* Not just freezing the animation — the duplicate group is purely a
+       scroll illusion, so a static page should only ever show it once. */
+    .operator-strip__group:nth-child(2) { display: none; }
+  }
+</style>

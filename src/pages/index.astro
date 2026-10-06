@@ -5,6 +5,7 @@ import QuickstartForm from '../components/QuickstartForm.astro';
 import IntroLoader from '../components/IntroLoader.astro';
 import SpaceDetail from '../components/SpaceDetail.astro';
 import PricingAuditForm from '../components/PricingAuditForm.astro';
+import OperatorStrip from '../components/OperatorStrip.astro';
 import { spaces } from '../data/spaces';
 import { plans, plansNote } from '../data/plans';
 
@@ -75,6 +76,8 @@ const faqSchema = {
   <NighthawksHero />
 
   <QuickstartForm />
+
+  <OperatorStrip />
 
   <section class="spaces">
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
