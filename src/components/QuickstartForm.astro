@@ -4,13 +4,14 @@ import { plans, plansNote } from '../data/plans';
 
 <section class="quickstart">
   <div class="quickstart__inner">
-    <p class="quickstart__line">Not sure where you stand? Get a free website audit.</p>
+    <p class="quickstart__line">Not sure where you stand? <span class="quickstart__line-accent">Get a free website audit.</span></p>
     <button type="button" class="quickstart__toggle" id="get-started" data-qs-toggle aria-expanded="false" aria-controls="quickstart-panel">
       Get Started
     </button>
 
     <div class="quickstart__grow" data-qs-grow>
       <div class="quickstart__panel" id="quickstart-panel" data-qs-panel data-step="gate">
+       <div class="quickstart__frame">
        <div class="quickstart__box" data-qs-box>
 
         <div class="qs-step" data-qs-step="gate">
@@ -104,6 +105,7 @@ import { plans, plansNote } from '../data/plans';
         </form>
 
         <p class="qs-error" data-qs-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
+       </div>
        </div>
       </div>
     </div>
@@ -255,14 +257,25 @@ import { plans, plansNote } from '../data/plans';
   .quickstart {
     max-width: 1080px;
     margin: 0 auto;
-    padding: var(--s-6) var(--s-5) 0;
+    /* Bottom padding keeps this section's content clear of OperatorStrip's
+       gray band below — both this section's own frame (below) and that
+       strip use the same --paper-2 fill, so without a deliberate gap here
+       they'd visually merge into one block. Baseline var(--s-7) (48px),
+       +10% per direction. */
+    padding: var(--s-6) var(--s-5) 53px;
   }
   .quickstart__inner { text-align: center; }
   .quickstart__line {
-    margin: 0 0 var(--s-3);
-    font-size: var(--step--1);
-    color: var(--ink-2);
+    margin: 0 auto var(--s-6);
+    max-width: 34ch;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--step-3);
+    line-height: 1.15;
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
   }
+  .quickstart__line-accent { color: var(--rust); }
 
   .quickstart__toggle {
     display: inline-block;
@@ -297,16 +310,45 @@ import { plans, plansNote } from '../data/plans';
     min-height: 0;
   }
 
+  /* The gray surround: same --paper-2 fill as OperatorStrip's banner below,
+     "reaching up" around the box. Width is inset ~250px from the viewport
+     on either side (capped at the section's own 1080px column so it never
+     overshoots on very wide screens); a plain block parent, so it grows
+     and shrinks automatically in step with .quickstart__box's own animated
+     height as the flow moves between steps — no extra JS needed. */
+  .quickstart__frame {
+    width: calc(100vw - 500px);
+    max-width: 1080px;
+    margin: 250px auto 0;
+    padding: var(--s-7) var(--s-6);
+    background: var(--paper-2);
+    border-radius: var(--radius-md);
+  }
+
   /* Bounds whichever step is showing; resizes with it as the flow moves
      between steps (see the goto() height transition in the script). */
   .quickstart__box {
     max-width: 640px;
-    margin: var(--s-6) auto 0;
+    margin: 0 auto;
     padding: var(--s-6) var(--s-5);
+    /* Blends into the frame by default — "backfilled" the same gray — then
+       pops to white on hover (still deciding) or permanently once a step
+       past the initial gate question is reached (committed to the flow). */
+    background: var(--paper-2);
     border: 2px solid var(--rust);
     border-radius: var(--radius-md);
     overflow: hidden;
-    transition: height var(--dur) var(--ease);
+    transition: height var(--dur) var(--ease), background var(--dur-fast) var(--ease);
+  }
+  .quickstart__box:hover { background: var(--paper); }
+  .quickstart__panel:not([data-step='gate']) .quickstart__box { background: var(--paper); }
+
+  @media (max-width: 1200px) {
+    .quickstart__frame {
+      width: 100%;
+      margin-top: var(--s-7);
+      padding: var(--s-5);
+    }
   }
 
   .qs-step {
