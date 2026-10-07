@@ -153,14 +153,22 @@
     margin: var(--s-5) auto 0;
     text-align: left;
   }
-  .ct-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .ct-field { display: flex; flex-direction: column; gap: var(--s-2); font-size: var(--step--1); color: var(--ink-2); }
+  /* A deliberately different field treatment from the rest of the site's
+     (mostly square, --paper-3-hairline) inputs: a clear diner-glass green
+     bounding box, rounded corners, and the same --paper-2 fill the
+     quickstart surface uses for its own "gray box" — on this section's
+     own --paper-2 background, the green outline is what defines the
+     field rather than a fill-color change, which is the quieter,
+     more minimal read the direction called for. */
   .ct-field input, .ct-field textarea {
     font: inherit;
-    padding: var(--s-2) var(--s-3);
-    border: 1px solid var(--paper-3);
-    border-radius: var(--radius-sm);
-    background: var(--paper);
+    padding: var(--s-3) var(--s-4);
+    border: 1.5px solid var(--diner-glass);
+    border-radius: 10px;
+    background: var(--paper-2);
     color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease);
   }
   .ct-field input:focus-visible, .ct-field textarea:focus-visible {
     outline: 2px solid var(--rust);
