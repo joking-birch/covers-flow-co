@@ -1,0 +1,196 @@
+---
+/**
+ * ContactForm.astro — the "Pull up a seat" CTA's contact form, mirroring
+ * PricingAuditForm.astro's toggle-to-reveal pattern and field styling.
+ * Posts to its own Netlify form ("contact") so submissions here are
+ * distinguishable from the audit-intent forms (intake, pricing-audit).
+ *
+ * After a successful submit, offers a free website audit as a final step
+ * — reuses the existing data-qs-open-audit mechanism (already globally
+ * wired up in QuickstartForm.astro's script, which queries the whole
+ * document for that attribute, not just its own root) rather than
+ * duplicating any audit-collection fields here. That upsell block starts
+ * hidden but is still present in the initial DOM, so the listener picks
+ * it up at page-load time regardless of when it's actually revealed.
+ */
+---
+<div class="contact" data-ct>
+  <button type="button" class="btn" data-ct-toggle aria-expanded="false" aria-controls="contact-panel">
+    Get in touch
+  </button>
+
+  <div class="contact__grow" data-ct-grow>
+    <div class="contact__panel" id="contact-panel">
+      <form name="contact" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" data-ct-form>
+        <input type="hidden" name="form-name" value="contact" />
+        <p class="ct-honeypot" aria-hidden="true">
+          <label>Don't fill this out: <input name="bot-field" tabindex="-1" autocomplete="off" /></label>
+        </p>
+
+        <div class="ct-fields">
+          <label class="ct-field">
+            <span>Name</span>
+            <input type="text" name="name" required />
+          </label>
+          <label class="ct-field">
+            <span>Business name</span>
+            <input type="text" name="business" required />
+          </label>
+          <label class="ct-field">
+            <span>Email</span>
+            <input type="email" name="email" required />
+          </label>
+          <label class="ct-field">
+            <span>Phone</span>
+            <input type="tel" name="phone" />
+          </label>
+          <label class="ct-field">
+            <span>Message</span>
+            <textarea name="message" rows="3"></textarea>
+          </label>
+        </div>
+
+        <button type="submit" class="btn ct-submit" data-ct-submit>Send it over</button>
+      </form>
+
+      <div class="ct-done" data-ct-done hidden>
+        <p class="ct-done__line">Thanks, we'll be in touch. You can also reach us directly at <a href="mailto:ian@ianwhitewrites.com">info@coversflow.co</a>.</p>
+        <div class="ct-upsell">
+          <p class="ct-upsell__line">While you're here — want a free look at your website?</p>
+          <a class="btn" href="#get-started" data-qs-open-audit>Get my free audit</a>
+        </div>
+      </div>
+
+      <p class="ct-error" data-ct-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* astro:page-load, not top-level: this module only executes once per
+     session (ES module caching), but ClientRouter lets a visitor return to
+     this page via soft navigation. Re-binding on every page-load event
+     (fired for the initial load too) is what makes the toggle and submit
+     work again on a revisit, not just the first time. */
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLElement>('[data-ct]').forEach((root) => {
+      const toggle = root.querySelector<HTMLButtonElement>('[data-ct-toggle]')!;
+      const grow = root.querySelector<HTMLElement>('[data-ct-grow]')!;
+      const form = root.querySelector<HTMLFormElement>('[data-ct-form]')!;
+      const submitBtn = root.querySelector<HTMLButtonElement>('[data-ct-submit]')!;
+      const doneMsg = root.querySelector<HTMLElement>('[data-ct-done]')!;
+      const errorMsg = root.querySelector<HTMLElement>('[data-ct-error]')!;
+
+      toggle.addEventListener('click', () => {
+        const willOpen = toggle.getAttribute('aria-expanded') !== 'true';
+        toggle.setAttribute('aria-expanded', String(willOpen));
+        grow.classList.toggle('contact__grow--open', willOpen);
+      });
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        errorMsg.hidden = true;
+        submitBtn.disabled = true;
+        const body = new URLSearchParams(new FormData(form) as any).toString();
+        try {
+          const res = await fetch('/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
+          });
+          if (!res.ok) throw new Error(`Status ${res.status}`);
+          form.hidden = true;
+          doneMsg.hidden = false;
+        } catch {
+          errorMsg.hidden = false;
+          submitBtn.disabled = false;
+        }
+      });
+    });
+  });
+</script>
+
+<style>
+  .contact { width: 100%; }
+
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* Grid-row trick: animates to auto-content height without JS measuring. */
+  .contact__grow {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .contact__grow--open { grid-template-rows: 1fr; }
+  .contact__panel { overflow: hidden; min-height: 0; }
+
+  .ct-fields {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+    width: 320px;
+    max-width: 100%;
+    margin: var(--s-5) auto 0;
+    text-align: left;
+  }
+  .ct-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .ct-field input, .ct-field textarea {
+    font: inherit;
+    padding: var(--s-2) var(--s-3);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .ct-field input:focus-visible, .ct-field textarea:focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 1px;
+  }
+
+  .ct-honeypot { position: absolute; left: -9999px; }
+
+  .ct-submit { display: block; width: 100%; margin-top: var(--s-4); }
+
+  .ct-done { max-width: 320px; margin: 0 auto; }
+  .ct-done__line { margin: 0; font-size: var(--step--1); color: var(--ink-2); }
+  .ct-done__line a { color: var(--rust); }
+  .ct-error { margin-top: var(--s-3); font-size: var(--step--1); color: var(--signal); max-width: 320px; margin-left: auto; margin-right: auto; }
+
+  /* The free-audit upsell: a visually distinct follow-up beat after the
+     thank-you line, not just more text of the same weight — same dashed
+     card treatment used for tags/cards elsewhere on this page. */
+  .ct-upsell {
+    margin-top: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 1px dashed var(--paper-3);
+  }
+  .ct-upsell__line {
+    margin: 0 0 var(--s-3);
+    font-size: var(--step--1);
+    color: var(--ink-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .contact__grow { transition-duration: .01ms; }
+  }
+</style>
