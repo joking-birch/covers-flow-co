@@ -239,7 +239,9 @@ const aboutChars = aboutText.split('');
         onEnter: () => {
           lenis?.stop();
           caret.classList.add('is-typing');
+          chars[0].before(caret); // starting position: right before the first character
           const progress = { n: 0 };
+          let lastTarget = 0;
           gsap.timeline({
             onComplete: () => {
               caret.classList.remove('is-typing');
@@ -251,7 +253,18 @@ const aboutChars = aboutText.split('');
             ease: 'none',
             onUpdate: () => {
               const target = Math.round(progress.n);
+              if (target === lastTarget) return;
               for (let i = 0; i < chars.length; i++) chars[i].classList.toggle('is-visible', i < target);
+              /* Moves the caret itself in the DOM to sit right after the
+                 most recently revealed character — since these are normal
+                 inline spans (not absolutely positioned), this naturally
+                 tracks the current line and wraps with the text, rather
+                 than sitting fixed at the end of the full (already fully
+                 laid-out, just invisible) paragraph. Only moves on an
+                 actual target change, not every frame, so it doesn't
+                 restart the blink animation unnecessarily. */
+              chars[target - 1].after(caret);
+              lastTarget = target;
             },
           });
         },
