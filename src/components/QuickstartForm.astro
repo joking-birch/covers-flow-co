@@ -247,18 +247,27 @@ const aboutChars = aboutText.split('');
       requestAnimationFrame(tick);
     };
 
-    /* Independent of the open/click flow now (see setOpen) — types in on
-       its own once scrolled into view. If the button gets clicked while
-       this is mid-animation or already finished, the CSS collapse on
-       .quickstart__about-grow hides it regardless; any in-flight rAF loop
-       just finishes harmlessly off-screen. */
-    const aboutObserver = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        typeAbout();
-        aboutObserver.disconnect();
-      }
-    }, { threshold: 0.4 });
-    aboutObserver.observe(aboutGrow);
+    /* Triggered by scrolling past the hero (NighthawksHero's root .hero
+       section), not by the about paragraph's own position — it's meant to
+       greet someone who scrolled on by without clicking Get Started, not
+       to fire only once they've scrolled all the way down to it. Hero is
+       the first thing on the page, so "not intersecting" here is
+       unambiguous: it only means "scrolled past," never "not reached yet."
+       Skipped entirely if the form is already open by that point — it'd
+       just get hidden immediately anyway (see setOpen), so there's no
+       reason to animate it off-screen. */
+    const hero = document.querySelector<HTMLElement>('.hero');
+    if (hero) {
+      const heroObserver = new IntersectionObserver((entries) => {
+        for (const entry of entries) {
+          if (!entry.isIntersecting) {
+            if (toggle.getAttribute('aria-expanded') !== 'true') typeAbout();
+            heroObserver.disconnect();
+          }
+        }
+      }, { threshold: 0 });
+      heroObserver.observe(hero);
+    }
 
     let resizeT: ReturnType<typeof setTimeout>;
 
