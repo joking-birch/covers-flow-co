@@ -1,0 +1,138 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { plans } from '../../data/plans';
+
+export function getStaticPaths() {
+  return plans.map((p) => ({ params: { plan: p.slug }, props: { p } }));
+}
+
+const { p } = Astro.props;
+
+/* Nested under /plans/ rather than top-level, deliberately: [space].astro
+   already claims the bare top-level single-segment route for the six
+   spaces, and giving these their own prefix avoids any ambiguity between
+   the two dynamic routes rather than relying on their slugs happening
+   not to collide. */
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: p.title, item: new URL(`/plans/${p.slug}`, Astro.site).toString() },
+  ],
+};
+---
+
+<Layout title={p.seoTitle} description={p.seoDescription}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <article class="plan-page">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="kicker">Website building &amp; design</p>
+    <h1>{p.title}</h1>
+    <p class="lead">{p.body}</p>
+    <p class="plan-page__price">
+      {p.price}
+      {p.price !== "Let's talk" && <span class="plan-page__price-unit">one-time</span>}
+    </p>
+
+    <ul class="plan-page__included">
+      {p.included.map((item) => <li>{item}</li>)}
+    </ul>
+
+    <div class="plan-page__cta">
+      <a class="btn" href={`/#plan-${p.id}`} data-qs-open-plan={p.id}>Get started with {p.title}</a>
+    </div>
+  </article>
+
+  <p class="back-wrap"><a href="/" class="back">← Back to the diner</a></p>
+</Layout>
+
+<style>
+  .plan-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .kicker {
+    margin: 0 0 var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+  h1 { margin: 0 0 var(--s-4); font-size: var(--step-3); }
+  .lead { margin: 0 0 var(--s-4); font-size: var(--step-1); color: var(--ink-2); }
+
+  .plan-page__price {
+    margin: 0 0 var(--s-6);
+    font-family: var(--font-mono);
+    font-size: var(--step-2);
+    font-weight: 500;
+    color: var(--rust);
+  }
+  .plan-page__price-unit {
+    margin-left: var(--s-2);
+    font-size: var(--step--1);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--ink-3);
+  }
+
+  .plan-page__included {
+    margin: 0 0 var(--s-7);
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-3);
+  }
+  .plan-page__included li {
+    position: relative;
+    padding-left: 1.3em;
+    font-size: var(--step-0);
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+  .plan-page__included li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: .6em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--rust);
+  }
+
+  .plan-page__cta { text-align: center; }
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--cream);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .back-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+    text-align: center;
+  }
+  .back { color: var(--rust); text-decoration: none; font-size: var(--step--1); }
+  .back:hover { text-decoration: underline; text-underline-offset: 4px; }
+</style>

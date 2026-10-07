@@ -142,11 +142,11 @@ const faqSchema = {
 
     <div class="pricing__grid">
       {plans.map((p) => (
-        <div class="pricing__card">
+        <a href={`/plans/${p.slug}`} class="pricing__card">
           <span class="pricing__title">{p.title}</span>
           <span class="pricing__price">{p.price}</span>
           <span class="pricing__body">{p.body}</span>
-        </div>
+        </a>
       ))}
     </div>
     <p class="pricing__note">{plansNote}</p>
@@ -409,20 +409,39 @@ const faqSchema = {
   }
   @media (max-width: 700px) { .pricing__grid { grid-template-columns: 1fr; } }
 
+  /* Same toggle-card language as .step (How it works) — idle dashed
+     card, solid-fills and flips its text cream on hover — but with the
+     fill/border pair swapped: diner-glass green fill here instead of
+     rust, with a rust border instead of diner-glass. Each plan is now a
+     link to its own page (src/pages/plans/[plan].astro), so this also
+     needs a real link's text-decoration/focus treatment, not just
+     decorative hover. */
   .pricing__card {
     display: flex;
     flex-direction: column;
     padding: var(--s-4);
+    background: var(--paper);
     border: 1px dashed var(--paper-3);
     border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   }
+  .pricing__card:hover, .pricing__card:focus-visible {
+    background: var(--diner-glass);
+    border: 1px solid var(--rust);
+  }
+  .pricing__card:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
   .pricing__title {
     font-family: var(--font-display);
     font-weight: 500;
     font-size: var(--step-1);
     letter-spacing: var(--tracking-tight);
     color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
   }
+  .pricing__card:hover .pricing__title, .pricing__card:focus-visible .pricing__title { color: var(--cream); }
+
   .pricing__price {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -430,8 +449,17 @@ const faqSchema = {
     text-transform: uppercase;
     color: var(--rust);
     margin: var(--s-1) 0 var(--s-2);
+    transition: color var(--dur-fast) var(--ease);
   }
-  .pricing__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
+  .pricing__card:hover .pricing__price, .pricing__card:focus-visible .pricing__price { color: var(--cream); }
+
+  .pricing__body {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .pricing__card:hover .pricing__body, .pricing__card:focus-visible .pricing__body { color: var(--cream); }
 
   .pricing__note { margin: 0 0 var(--s-5); font-size: 12px; color: var(--ink-3); }
   .pricing__link { color: var(--rust); text-decoration: none; font-size: var(--step--1); }

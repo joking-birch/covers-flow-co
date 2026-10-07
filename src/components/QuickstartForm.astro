@@ -338,6 +338,38 @@ const aboutChars = aboutText.split('');
       goto('audit');
     }
 
+    /* Same idea, but for a specific website-build plan — each plan's own
+       page (src/pages/plans/[plan].astro) carries this attribute with the
+       plan's id as its value, pre-selecting that plan and jumping to the
+       contact step rather than making the visitor pick again from the
+       plans list. copyByPath (above) already keys its heading/lead/submit
+       text by plan id, so setting pathInput.value here is the only piece
+       needed for goto('contact') to pick up the right copy. */
+    document.querySelectorAll<HTMLElement>('[data-qs-open-plan]').forEach((el) => {
+      el.addEventListener('click', () => {
+        const plan = el.getAttribute('data-qs-open-plan');
+        if (plan) pathInput.value = plan;
+        setOpen(true);
+        goto('contact');
+      });
+    });
+
+    /* Cross-page arrival version of the above — a plan page's CTA links to
+       "/#plan-<id>", a navigation to this page rather than a click here,
+       so the listener above never fires for that case either. Unlike
+       "#get-started" (which matches the toggle's own id, so the browser's
+       native hash-scroll already lands there on arrival), "#plan-<id>"
+       matches no element, so nothing scrolls by default — explicitly
+       scroll to the toggle ourselves, or the form opens off-screen above
+       the fold with nothing visible to show for it. */
+    const planHashMatch = location.hash.match(/^#plan-(.+)$/);
+    if (planHashMatch) {
+      pathInput.value = planHashMatch[1];
+      setOpen(true);
+      goto('contact');
+      toggle.scrollIntoView({ behavior: reduceMotion.matches ? 'auto' : 'smooth', block: 'start' });
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorMsg.hidden = true;
