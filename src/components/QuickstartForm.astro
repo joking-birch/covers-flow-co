@@ -651,16 +651,22 @@ const aboutChars = aboutText.split('');
     margin-top: var(--s-4);
   }
   @media (max-width: 560px) { .qs-fields { grid-template-columns: 1fr; } }
-  .qs-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .qs-field { display: flex; flex-direction: column; gap: var(--s-2); font-size: var(--step--1); color: var(--ink-2); }
   .qs-field--wide { grid-column: 1 / -1; }
   .qs-field[hidden] { display: none; }
+  /* Matches ContactForm.astro's field treatment: a diner-glass green
+     bounding box, rounded corners, and the same --paper-2 fill the
+     quickstart surface itself uses for its own "gray box" — kept
+     consistent across both "request my free audit" touchpoints on the
+     site (this one and PricingAuditForm's). */
   .qs-field input, .qs-field textarea {
     font: inherit;
-    padding: var(--s-2) var(--s-3);
-    border: 1px solid var(--paper-3);
-    border-radius: var(--radius-sm);
-    background: var(--paper);
+    padding: var(--s-3) var(--s-4);
+    border: 1.5px solid var(--diner-glass);
+    border-radius: 10px;
+    background: var(--paper-2);
     color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease);
   }
   .qs-field input:focus-visible, .qs-field textarea:focus-visible {
     outline: 2px solid var(--rust);

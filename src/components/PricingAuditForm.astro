@@ -147,14 +147,19 @@
     margin: var(--s-5) auto 0;
     text-align: left;
   }
-  .pa-field { display: flex; flex-direction: column; gap: var(--s-1); font-size: var(--step--1); color: var(--ink-2); }
+  .pa-field { display: flex; flex-direction: column; gap: var(--s-2); font-size: var(--step--1); color: var(--ink-2); }
+  /* Matches ContactForm.astro's field treatment: a diner-glass green
+     bounding box, rounded corners, and the same --paper-2 fill the
+     quickstart surface uses for its own "gray box" — kept consistent
+     across both "request my free audit" touchpoints on the site. */
   .pa-field input, .pa-field textarea {
     font: inherit;
-    padding: var(--s-2) var(--s-3);
-    border: 1px solid var(--paper-3);
-    border-radius: var(--radius-sm);
-    background: var(--paper);
+    padding: var(--s-3) var(--s-4);
+    border: 1.5px solid var(--diner-glass);
+    border-radius: 10px;
+    background: var(--paper-2);
     color: var(--ink);
+    transition: border-color var(--dur-fast) var(--ease);
   }
   .pa-field input:focus-visible, .pa-field textarea:focus-visible {
     outline: 2px solid var(--rust);
