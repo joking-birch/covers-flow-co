@@ -124,7 +124,7 @@
   .btn:hover, .btn:focus-visible {
     background: var(--rust);
     border-color: var(--rust);
-    color: var(--paper);
+    color: var(--cream); /* fixed, not theme-adaptive --paper — needs to stay light against the rust fill regardless of site theme */
   }
   .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
   .btn:disabled { opacity: .6; cursor: not-allowed; }

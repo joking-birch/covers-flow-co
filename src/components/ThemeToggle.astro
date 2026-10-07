@@ -1,0 +1,102 @@
+---
+/**
+ * ThemeToggle.astro — fixed, always-visible light/dark toggle (bottom
+ * right, so it never competes with the header's hamburger menu). Clicking
+ * it stores an explicit choice in localStorage; absent a stored choice,
+ * the site just follows the OS preference via tokens.css's
+ * prefers-color-scheme block. z-index sits below SiteMenu's full-screen
+ * overlay (z 50) on purpose, so opening the menu naturally covers this
+ * rather than the two floating on top of each other.
+ *
+ * No flash on first load: see the inline script in Layout.astro's <head>,
+ * which applies any stored theme synchronously before first paint. This
+ * component's own script re-applies it defensively on every
+ * astro:page-load too, in case a soft navigation's incoming document
+ * reset <html>'s attributes before that point.
+ */
+---
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch between light and dark theme">
+  <svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.5" />
+    <line x1="12" y1="1.5" x2="12" y2="4" />
+    <line x1="12" y1="20" x2="12" y2="22.5" />
+    <line x1="1.5" y1="12" x2="4" y2="12" />
+    <line x1="20" y1="12" x2="22.5" y2="12" />
+    <line x1="4.6" y1="4.6" x2="6.3" y2="6.3" />
+    <line x1="17.7" y1="17.7" x2="19.4" y2="19.4" />
+    <line x1="4.6" y1="19.4" x2="6.3" y2="17.7" />
+    <line x1="17.7" y1="6.3" x2="19.4" y2="4.6" />
+  </svg>
+  <svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true">
+    <path d="M20 12a8 8 0 1 1-8-8 6.5 6.5 0 0 0 8 8z" />
+  </svg>
+</button>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+    if (!toggle) return;
+
+    const stored = () => localStorage.getItem('theme');
+    const systemPrefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const current = () => stored() ?? (systemPrefersDark() ? 'dark' : 'light');
+
+    const apply = (theme: string | null) => {
+      if (theme) document.documentElement.setAttribute('data-theme', theme);
+      else document.documentElement.removeAttribute('data-theme');
+    };
+
+    apply(stored());
+
+    toggle.addEventListener('click', () => {
+      const next = current() === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      apply(next);
+    });
+  });
+</script>
+
+<style>
+  .theme-toggle {
+    position: fixed;
+    right: var(--s-5);
+    bottom: var(--s-5);
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    border: 1px solid var(--paper-3);
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+  .theme-toggle:hover, .theme-toggle:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--cream); /* fixed, not theme-adaptive --paper — needs to stay light against the rust fill regardless of site theme */
+  }
+  .theme-toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .theme-toggle__icon { width: 20px; height: 20px; grid-area: 1 / 1; }
+  /* The icon shown is the destination clicking it switches TO, not the
+     current state — moon visible in light mode (click to go dark), sun
+     visible in dark mode (click to go light). */
+  .theme-toggle__icon--sun { display: none; }
+
+  /* Same three-state cascade as the color tokens: OS preference decides
+     absent an explicit choice, explicit choice always wins. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .theme-toggle__icon--moon { display: none; }
+    :root:not([data-theme="light"]) .theme-toggle__icon--sun { display: block; }
+  }
+  :root[data-theme="dark"] .theme-toggle__icon--moon { display: none; }
+  :root[data-theme="dark"] .theme-toggle__icon--sun { display: block; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .theme-toggle { transition-duration: .01ms; }
+  }
+</style>

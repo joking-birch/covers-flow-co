@@ -149,7 +149,10 @@ const css = spaces.map(p => `
   .stage[data-active] .pop.is-on { filter: drop-shadow(0 18px 34px rgb(0 0 0 / .75)); }
   .pop__outline { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
   .pop__outline :global(*) {
-    fill: none; stroke: var(--paper); stroke-width: 1.5px;
+    /* --cream, not --paper: the hero is always dark regardless of site
+       theme, so everything in it needs the fixed light cream rather than
+       the theme-adaptive page token (which goes dark in dark mode). */
+    fill: none; stroke: var(--cream); stroke-width: 1.5px;
     stroke-dasharray: 6 3 2 3; stroke-linecap: round;
     vector-effect: non-scaling-stroke;
     animation: march 1.9s linear infinite;
@@ -162,14 +165,14 @@ const css = spaces.map(p => `
   .bubble {
     position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
     display: flex; flex-direction: column; align-items: center; gap: 7px;
-    text-decoration: none; color: var(--paper); font-family: var(--font-body);
+    text-decoration: none; color: var(--cream); font-family: var(--font-body);
   }
   .bubble:hover, .bubble:focus-visible { color: var(--lamp); }
   .bubble:focus-visible { outline: 2px solid var(--lamp); outline-offset: 6px; border-radius: 4px; }
   .bubble__ring {
     position: relative; display: grid; place-items: center;
     width: 38px; height: 38px; border-radius: 50%;
-    border: 1px dashed rgb(243 238 228 / .6); background: rgb(22 40 60 / .3);
+    border: 1px dashed color-mix(in srgb, var(--cream) 60%, transparent); background: rgb(22 40 60 / .3);
     backdrop-filter: blur(3px);
     font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
   }
@@ -193,18 +196,18 @@ const css = spaces.map(p => `
   .cards { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
   .card {
     position: absolute; width: 296px; padding: var(--s-4);
-    background: rgb(22 40 60 / .93); border: 1px dashed var(--paper-3);
-    border-radius: var(--radius-sm); color: var(--paper);
+    background: rgb(22 40 60 / .93); border: 1px dashed var(--cream-3);
+    border-radius: var(--radius-sm); color: var(--cream);
     opacity: 0; transform: translateY(8px); pointer-events: none;
     transition: opacity .3s ease, transform var(--dur) var(--ease);
   }
   .card__head { margin: 0 0 6px; font-family: var(--font-display); font-size: 19px; letter-spacing: var(--tracking-tight); }
   .card__n { font-family: var(--font-mono); font-size: 11px; color: var(--ochre); letter-spacing: .1em; margin-right: 4px; }
-  .card__blurb { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--paper-2); text-wrap: pretty; }
+  .card__blurb { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--cream-2); text-wrap: pretty; }
   .card__tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 0 12px; padding: 0; list-style: none; }
   .card__tags li {
-    font-size: 10.5px; padding: 3px 8px; border: 1px dashed var(--paper-3);
-    border-radius: var(--radius-sm); color: var(--paper-2);
+    font-size: 10.5px; padding: 3px 8px; border: 1px dashed var(--cream-3);
+    border-radius: var(--radius-sm); color: var(--cream-2);
     text-transform: uppercase; letter-spacing: .07em;
   }
   .card__cta { font-size: 12.5px; color: var(--lamp); text-decoration: none; border-bottom: 1px solid transparent; }
@@ -222,12 +225,12 @@ const css = spaces.map(p => `
   .intro .intro__headline {
     margin: 0 0 10px; font-family: var(--font-display); font-size: var(--step-4);
     line-height: 1.02; letter-spacing: var(--tracking-tight); max-width: 9ch;
-    color: var(--paper); text-shadow: 0 2px 24px rgb(0 0 0 / .85);
+    color: var(--cream); text-shadow: 0 2px 24px rgb(0 0 0 / .85);
   }
   .intro p, .intro .intro__lede {
     margin: 0 0 6px; font-size: 14.5px; font-family: var(--font-body);
     font-weight: 400; letter-spacing: normal; line-height: 1.5;
-    color: var(--paper-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9);
+    color: var(--cream-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9);
   }
   /* Comes after (and repeats the .intro ancestor) so it outweighs .intro p's
      specificity above — otherwise that rule's color wins the cascade. */

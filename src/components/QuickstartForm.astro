@@ -434,7 +434,7 @@ const aboutChars = aboutText.split('');
   .quickstart__toggle:hover, .quickstart__toggle:focus-visible {
     background: var(--rust);
     border-color: var(--rust);
-    color: var(--paper);
+    color: var(--cream); /* fixed, not theme-adaptive --paper — needs to stay light against the rust fill regardless of site theme */
   }
   .quickstart__toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 
@@ -582,7 +582,7 @@ const aboutChars = aboutText.split('');
   .btn:hover, .btn:focus-visible, .btn--outline:hover, .btn--outline:focus-visible {
     background: var(--rust);
     border-color: var(--rust);
-    color: var(--paper);
+    color: var(--cream); /* fixed, not theme-adaptive --paper — needs to stay light against the rust fill regardless of site theme */
   }
   .btn:focus-visible, .btn--outline:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
   .btn:disabled { opacity: .6; cursor: not-allowed; }

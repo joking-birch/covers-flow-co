@@ -9,6 +9,7 @@ import '../styles/global.css';
 import { ClientRouter } from 'astro:transitions';
 import SiteMenu from '../components/SiteMenu.astro';
 import FlowMark from '../components/FlowMark.astro';
+import ThemeToggle from '../components/ThemeToggle.astro';
 
 interface Props {
   title?: string;
@@ -39,6 +40,18 @@ const organizationSchema = {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <!-- Applies any stored theme choice before first paint, so there's no
+         flash of the wrong theme on load. Runs again (defensively) on every
+         astro:page-load in ThemeToggle.astro's own script, in case a soft
+         navigation's incoming document resets <html>'s attributes. -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored) document.documentElement.setAttribute('data-theme', stored);
+        } catch (e) {}
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
@@ -74,6 +87,7 @@ const organizationSchema = {
       </a>
       <SiteMenu />
     </header>
+    <ThemeToggle />
     <slot />
     <footer class="site-footer">
       <p>CoversFlow: SEO for hospitality</p>
@@ -155,7 +169,7 @@ const organizationSchema = {
     justify-content: space-between;
     padding: 0 var(--s-5);
     background: var(--paper);
-    border-bottom: 1px solid rgb(216 207 188 / calc(1 - var(--open)));
+    border-bottom: 1px solid color-mix(in srgb, var(--paper-3) calc((1 - var(--open)) * 100%), transparent);
     /* No transform in the base state on purpose: SiteMenu's full-viewport
        overlay is position:fixed and lives inside this header in the DOM —
        any transform here (even translateY(0)) makes it a containing block,
@@ -186,7 +200,9 @@ const organizationSchema = {
 
   .site-footer {
     background: var(--night);
-    color: var(--paper-2);
+    /* --cream-2, not --paper-2: the footer is always --night (dark)
+       regardless of site theme, so its text needs the fixed cream family. */
+    color: var(--cream-2);
     padding: var(--s-6) var(--s-5);
   }
   .site-footer p { margin: 0; font-size: var(--step--1); }
@@ -200,7 +216,7 @@ const organizationSchema = {
   }
   .site-footer__nav { margin-top: var(--s-4); }
   .site-footer__nav a {
-    color: var(--paper-2);
+    color: var(--cream-2);
     font-size: var(--step--1);
     text-decoration: none;
     border-bottom: 1px solid transparent;

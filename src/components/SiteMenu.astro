@@ -204,7 +204,7 @@ const levels = [
     position: relative; z-index: 60;
     display: grid; gap: 6px; place-content: center;
     width: 46px; height: 46px; padding: 0;
-    background: transparent; border: 1px solid rgb(27 26 24 / .28);
+    background: transparent; border: 1px solid color-mix(in srgb, var(--ink) 28%, transparent);
     border-radius: var(--radius-sm); cursor: pointer;
     transition: border-color var(--dur-fast) ease;
   }
@@ -437,12 +437,12 @@ const levels = [
   .nav {
     display: flex; flex-direction: column;
     margin-top: clamp(28px, 5vh, 64px);
-    border-top: 1px solid rgb(27 26 24 / .14);
+    border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
   }
   .nav__item {
     display: grid; grid-template-columns: 34px 1fr; align-items: baseline; gap: 12px;
     padding: clamp(9px, 1.4vh, 16px) 0;
-    border-bottom: 1px solid rgb(27 26 24 / .14);
+    border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
     text-decoration: none;
     transition: padding-left 260ms ease, background 260ms ease;
   }

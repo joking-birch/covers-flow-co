@@ -12,6 +12,16 @@
   --ink-2:        #46423C; /* secondary text */
   --ink-3:        #756E64; /* captions, meta */
 
+  /* Theme-INVARIANT cream — never redefined in the dark-mode blocks below.
+     --paper/-2/-3 mean "page ground" and flip dark in dark mode; these
+     mean "light cream," full stop, for text/borders that sit on a
+     surface that's always dark regardless of site theme (the hero, the
+     footer, a button's own rust fill on hover) — using --paper there
+     would go dark-on-dark the moment dark mode flips it. */
+  --cream:        #F3EEE4;
+  --cream-2:      #E7E0D1;
+  --cream-3:      #D8CFBC;
+
   /* ── Marks (use as line, block and small field — not as page floods) ── */
   --rust:         #A8431E; /* primary accent: CTAs, active state, rules */
   --rust-deep:    #7E3116; /* pressed */
@@ -50,6 +60,54 @@
   --ease: cubic-bezier(.2,.8,.2,1);
   --dur-fast: .25s;
   --dur: .45s;
+}
+
+/* ── Dark mode ─────────────────────────────────────────────────
+   Inverts paper/ink into a warm dark charcoal (not the cool --night
+   navy — that stays reserved for the hero/footer so they still read as
+   a deliberately different, darker "window" within the page rather than
+   disappearing into it) and brightens the saturated marks (rust, ochre,
+   signal, diner-glass) so they hold contrast against the new dark
+   grounds. --night, --night-2 and --lamp are intentionally untouched:
+   they're already dark-appropriate and used for spots meant to stay
+   visually constant regardless of site theme.
+
+   Three-state cascade: an explicit choice (data-theme, set by the
+   toggle in ThemeToggle.astro) always wins; absent that, the OS
+   preference decides. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:        #1A1815;
+    --paper-2:      #221F1B;
+    --paper-3:      #38332C;
+    --ink:          #F0EAE0;
+    --ink-2:        #C2B9A8;
+    --ink-3:        #8C8374;
+
+    --rust:         #D97A4A;
+    --rust-deep:    #B85F35;
+    --ochre:        #DDAD56;
+    --olive:        #7E8F6C;
+    --signal:       #E2684F;
+
+    --diner-glass:  #5BA394;
+  }
+}
+:root[data-theme="dark"] {
+  --paper:        #1A1815;
+  --paper-2:      #221F1B;
+  --paper-3:      #38332C;
+  --ink:          #F0EAE0;
+  --ink-2:        #C2B9A8;
+  --ink-3:        #8C8374;
+
+  --rust:         #D97A4A;
+  --rust-deep:    #B85F35;
+  --ochre:        #DDAD56;
+  --olive:        #7E8F6C;
+  --signal:       #E2684F;
+
+  --diner-glass:  #5BA394;
 }
 
 /* Usage notes
