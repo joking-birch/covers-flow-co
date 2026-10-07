@@ -1,12 +1,13 @@
 ---
 import { plans, plansNote } from '../data/plans';
 
-/* Typed out letter-by-letter under the gate box once the panel opens (see
-   the typewriter script below) — split into one span per character so the
-   paragraph's final wrapped height is correct and stable from the start
-   (each char is already in normal flow, just invisible), rather than the
-   container's height changing as text streams in alongside the panel's own
-   open transition. */
+/* Typed out letter-by-letter in the idle state, in the gap between the
+   quickstart surface and OperatorStrip below (see the typewriter script) —
+   split into one span per character so the paragraph's final wrapped
+   height is correct and stable from the start (each char is already in
+   normal flow, just invisible), rather than the container's height
+   changing as text streams in. Hidden entirely once Get Started is
+   clicked — see .quickstart__about-grow. */
 const aboutText = "CoversFlow is a technical SEO and AI-search practice for restaurants and hospitality, run by someone who worked the floor for twenty years before doing this full time. We fix the plumbing — schema, speed, Google Business Profile — so guests find the room, not just the website.";
 const aboutChars = aboutText.split('');
 ---
@@ -115,15 +116,22 @@ const aboutChars = aboutText.split('');
 
         <p class="qs-error" data-qs-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
        </div>
-
-       <p class="quickstart__about">
-         <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
-           {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
-         </span>
-         <span class="quickstart__about-sr">{aboutText}</span>
-       </p>
       </div>
     </div>
+   </div>
+
+   <!-- Independent of the surface above: lives in the plain white gap
+        between it and OperatorStrip, visible only in the idle (unclicked)
+        state. Types in once scrolled into view, and collapses away the
+        moment Get Started is clicked, whether or not it's finished typing
+        — never appears inside the box/panel itself. -->
+   <div class="quickstart__about-grow" data-qs-about-grow>
+     <p class="quickstart__about">
+       <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
+         {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
+       </span>
+       <span class="quickstart__about-sr">{aboutText}</span>
+     </p>
    </div>
   </div>
 </section>
@@ -139,6 +147,7 @@ const aboutChars = aboutText.split('');
     if (!root) return;
 
     const surface = root.querySelector<HTMLElement>('[data-qs-surface]')!;
+    const aboutGrow = root.querySelector<HTMLElement>('[data-qs-about-grow]')!;
     const typewriter = root.querySelector<HTMLElement>('[data-qs-typewriter]')!;
     const caret = root.querySelector<HTMLElement>('[data-qs-caret]')!;
     const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
@@ -185,7 +194,10 @@ const aboutChars = aboutText.split('');
          invisible. */
       surface.classList.toggle('quickstart__surface--open', v);
       toggle.inert = v;
-      if (v) typeAbout();
+      /* The about paragraph is only ever shown in the idle state — opening
+         the form collapses it away immediately, whether or not it's
+         finished typing. It never lives inside the box/panel itself. */
+      aboutGrow.classList.toggle('quickstart__about-grow--hidden', v);
     };
 
     toggle.addEventListener('click', () => {
@@ -234,6 +246,19 @@ const aboutChars = aboutText.split('');
       };
       requestAnimationFrame(tick);
     };
+
+    /* Independent of the open/click flow now (see setOpen) — types in on
+       its own once scrolled into view. If the button gets clicked while
+       this is mid-animation or already finished, the CSS collapse on
+       .quickstart__about-grow hides it regardless; any in-flight rAF loop
+       just finishes harmlessly off-screen. */
+    const aboutObserver = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        typeAbout();
+        aboutObserver.disconnect();
+      }
+    }, { threshold: 0.4 });
+    aboutObserver.observe(aboutGrow);
 
     let resizeT: ReturnType<typeof setTimeout>;
 
@@ -447,11 +472,32 @@ const aboutChars = aboutText.split('');
   .quickstart__box:hover { background: var(--paper); }
   .quickstart__panel:not([data-step='gate']) .quickstart__box { background: var(--paper); }
 
+  /* Grid-row trick again: collapses this whole block away the instant the
+     form opens (see setOpen), rather than just leaving it visible below
+     the now-open panel. */
+  .quickstart__about-grow {
+    display: grid;
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-top: var(--s-6);
+    transition: grid-template-rows var(--dur) var(--ease), opacity var(--dur-fast) var(--ease), margin var(--dur) var(--ease);
+  }
+  .quickstart__about-grow--hidden {
+    grid-template-rows: 0fr;
+    opacity: 0;
+    margin-top: 0;
+  }
+  .quickstart__about-grow > .quickstart__about {
+    overflow: hidden;
+    min-height: 0;
+  }
+
   /* Same mono face OperatorStrip uses for its company names, typed in
-     letter-by-letter under the gate box (see the typewriter script). */
+     letter-by-letter in the white gap between the surface and
+     OperatorStrip — only while the form is still closed. */
   .quickstart__about {
     max-width: 640px;
-    margin: var(--s-5) auto 0;
+    margin: 0 auto;
     padding: 0 var(--s-2);
     font-family: var(--font-mono);
     font-size: var(--step--1);
@@ -638,7 +684,7 @@ const aboutChars = aboutText.split('');
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .quickstart__grow, .quickstart__box, .quickstart__surface, .quickstart__toggle { transition-duration: .01ms; }
+    .quickstart__grow, .quickstart__box, .quickstart__surface, .quickstart__toggle, .quickstart__about-grow { transition-duration: .01ms; }
     .qs-char { transition-duration: .01ms; }
     .quickstart__caret.is-typing { animation: none; }
   }
