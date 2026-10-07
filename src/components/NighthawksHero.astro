@@ -76,6 +76,12 @@ const css = spaces.map(p => `
   .stage[data-active="${p.id}"] .pop--${p.id} { opacity: 1; transform: scale(var(--pop-scale)); }
   .stage[data-active="${p.id}"] .pop--${p.id} .pop__clip { pointer-events: auto; }
   .stage[data-active="${p.id}"] .card--${p.id} { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .stage[data-spotlight="${p.id}"] .bubble--${p.id} .bubble__ring {
+    border-color: var(--rust); color: var(--rust); font-weight: 700; transform: scale(1.06);
+  }
+  .stage[data-spotlight="${p.id}"] .bubble--${p.id} .bubble__label {
+    color: var(--rust); font-weight: 600;
+  }
 `).join('\n');
 ---
 
@@ -116,10 +122,13 @@ const css = spaces.map(p => `
     </div>
 
     <div class="intro">
-      <p class="intro__headline">Ranked. Reserved. Repeat.</p>
-      <p class="intro__tagline">From Search to Seated.</p>
-      <h1 class="intro__lede">CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</h1>
-      <p class="intro__hint">Hover a figure to look closer</p>
+      <div class="intro__glass" aria-hidden="true"></div>
+      <div class="intro__content">
+        <p class="intro__headline">Ranked. Reserved. Repeat.</p>
+        <p class="intro__tagline">From Search to Seated.</p>
+        <h1 class="intro__lede">CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</h1>
+        <p class="intro__hint">Hover a figure to look closer</p>
+      </div>
     </div>
   </div>
 </section>
@@ -133,7 +142,7 @@ const css = spaces.map(p => `
   .stage {
     position: relative; margin: 0 auto; overflow: hidden;
     width: 100%; max-width: calc((100vh - 62px) * 16 / 9); aspect-ratio: 16 / 9;
-    --blur: 7px; --pop-scale: 1.12;
+    --blur: 7px; --pop-scale: 1.12; --mx: 0; --my: 0; --sy: 0;
   }
   .base, .pop { position: absolute; inset: 0; }
   .base :global(img), .pop :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -175,6 +184,7 @@ const css = spaces.map(p => `
     border: 1px dashed color-mix(in srgb, var(--cream) 60%, transparent); background: rgb(22 40 60 / .3);
     backdrop-filter: blur(3px);
     font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+    transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
   }
   .bubble__orbit {
     position: absolute; inset: -6px; border-radius: 50%;
@@ -191,6 +201,7 @@ const css = spaces.map(p => `
     font-size: 10.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase;
     white-space: nowrap; padding: 2px 6px; border-radius: var(--radius-sm);
     background: rgb(22 40 60 / .6);
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .cards { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
@@ -241,15 +252,55 @@ const css = spaces.map(p => `
   }
   .intro__hint { font-size: 11.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--ochre); }
 
+  .intro__content { position: relative; z-index: 2; }
+
+  /* Frosted panel behind the intro text so it reads over busy paint detail
+     instead of sitting directly on it. Lives inside .intro so the existing
+     .stage[data-active] .intro fade (above) hides text + glass together —
+     no separate show/hide logic needed. Bleeds past the text column for a
+     panel look, confined to this corner rather than full-bleed. */
+  .intro__glass {
+    position: absolute; z-index: 1;
+    inset: -20px -24px;
+    border-radius: 14px; /* intentionally softer than the site's poster-squared --radius-sm/md — the one soft shape in this hero */
+    overflow: hidden;
+    border: 1px dashed color-mix(in srgb, var(--cream) 35%, transparent);
+    background: rgb(22 40 60 / .34);
+    backdrop-filter: blur(14px) saturate(1.15);
+    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 18px 40px rgb(0 0 0 / .35);
+    transition: opacity .35s ease, transform var(--dur) ease;
+    transform: translate3d(
+      calc(var(--mx, 0) * 6px),
+      calc(var(--my, 0) * 6px + var(--sy, 0) * 12px),
+      0
+    );
+    will-change: transform;
+  }
+  /* Ambient "liquid" idle motion: a sheen sweep on ::before, not an
+     animated backdrop-filter (which would force a blur recompute/frame). */
+  .intro__glass::before {
+    content: '';
+    position: absolute; inset: -40%;
+    background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / .08) 50%, transparent 65%);
+    animation: glass-sheen 9s ease-in-out infinite;
+  }
+  @keyframes glass-sheen {
+    0%, 100% { transform: translate(-20%, -6%); opacity: .5; }
+    50%      { transform: translate(10%, 6%);  opacity: .9; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    .bubble__orbit, .pop__outline :global(*) { animation: none; }
-    .pop, .base, .card, .intro { transition-duration: .01ms; }
+    .bubble__orbit, .pop__outline :global(*), .intro__glass::before { animation: none; }
+    .pop, .base, .card, .intro, .intro__glass { transition-duration: .01ms; }
+    .intro__glass { transform: none; }
   }
   /* Below the ratio where hotspots stay legible, drop the painting to a flat
      backdrop and let the space grid below the hero carry navigation. */
   @media (max-width: 780px), (hover: none) {
     .bubbles, .cards, .pop { display: none; }
     .intro { position: static; padding: var(--s-6) var(--s-5); max-width: 40ch; }
+    .intro__glass { display: none; }
   }
 </style>
 
@@ -260,8 +311,35 @@ const css = spaces.map(p => `
      every page-load event (fired for the initial load too) is what makes
      the hover interaction work again on a revisit, not just the first. */
   document.addEventListener('astro:page-load', () => {
-    const stage = document.querySelector('[data-stage]');
+    const stage = document.querySelector<HTMLElement>('[data-stage]');
     if (!stage) return;
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let inView = false;
+
+    /* Idle attention-cycle: highlights one numbered bubble at a time (color
+       + bold, via data-spotlight) so first-time visitors notice the hotspots
+       are interactive before ever hovering one. Paused during real hover and
+       while off-screen; disabled entirely under reduced motion. */
+    const hotspots = Array.from(stage.querySelectorAll('[data-hotspot]')).map((el) => el.dataset.hotspot);
+    let spotlightTimer = null;
+    let spotlightIdx = -1;
+    const SPOTLIGHT_MS = 3400;
+
+    function spotlightNext() {
+      spotlightIdx = (spotlightIdx + 1) % hotspots.length;
+      stage.dataset.spotlight = hotspots[spotlightIdx];
+    }
+    function startSpotlight() {
+      if (spotlightTimer || reduceMotion.matches) return;
+      spotlightNext();
+      spotlightTimer = setInterval(spotlightNext, SPOTLIGHT_MS);
+    }
+    function stopSpotlight() {
+      clearInterval(spotlightTimer);
+      spotlightTimer = null;
+      delete stage.dataset.spotlight;
+    }
 
     /* The active hotspot's bubble, surfaced cutout and card form ONE hover
        zone (the clip-path also clips hit-testing, so the cutout only catches
@@ -270,7 +348,12 @@ const css = spaces.map(p => `
     const LINGER_MS = 400;
     let timer = null;
     const cancel = () => { clearTimeout(timer); timer = null; };
-    const set = (v) => { cancel(); v ? stage.dataset.active = v : delete stage.dataset.active; };
+    const set = (v) => {
+      cancel();
+      v ? stage.dataset.active = v : delete stage.dataset.active;
+      if (v) stopSpotlight();
+      else if (inView) startSpotlight();
+    };
     const linger = () => { cancel(); timer = setTimeout(() => set(null), LINGER_MS); };
 
     stage.querySelectorAll('[data-hotspot]').forEach((el) => {
@@ -285,7 +368,54 @@ const css = spaces.map(p => `
     });
     stage.addEventListener('pointerleave', linger);
     stage.addEventListener('focusout', (e) => {
-      if (!stage.contains(e.relatedTarget)) set(null);
+      if (!stage.contains(e.relatedTarget as Node | null)) set(null);
     });
+
+    /* Only run the spotlight cycle and scroll-parallax loop while the hero
+       is near/in view — cheap to gate, no reason to tick either off-screen. */
+    let scrollRaf = 0;
+    const startScrollLoop = () => {
+      if (scrollRaf || reduceMotion.matches) return;
+      const tick = () => {
+        if (!inView) { scrollRaf = 0; return; }
+        const r = stage.getBoundingClientRect();
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const progress = ((vh / 2) - (r.top + r.height / 2)) / (vh / 2);
+        stage.style.setProperty('--sy', progress.toFixed(3));
+        scrollRaf = requestAnimationFrame(tick);
+      };
+      scrollRaf = requestAnimationFrame(tick);
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      if (inView && !stage.dataset.active) startSpotlight();
+      if (inView) startScrollLoop();
+    }, { rootMargin: '20% 0px' });
+    io.observe(stage);
+
+    /* Glass-panel mouse parallax: cursor position within .stage, normalized
+       -1..1, rAF-throttled — same shape as SiteMenu.astro's --mx/--my. Only
+       .intro__glass's transform reads these, so the text itself never moves. */
+    if (!reduceMotion.matches) {
+      let raf = 0;
+      const point = { x: 0, y: 0 };
+      stage.addEventListener('pointermove', (e) => {
+        const r = stage.getBoundingClientRect();
+        point.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
+        point.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
+        if (!raf) {
+          raf = requestAnimationFrame(() => {
+            raf = 0;
+            stage.style.setProperty('--mx', point.x.toFixed(3));
+            stage.style.setProperty('--my', point.y.toFixed(3));
+          });
+        }
+      });
+      stage.addEventListener('pointerleave', () => {
+        stage.style.setProperty('--mx', '0');
+        stage.style.setProperty('--my', '0');
+      });
+    }
   });
 </script>
