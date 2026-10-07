@@ -1,5 +1,14 @@
 ---
 import { plans, plansNote } from '../data/plans';
+
+/* Typed out letter-by-letter under the gate box once the panel opens (see
+   the typewriter script below) — split into one span per character so the
+   paragraph's final wrapped height is correct and stable from the start
+   (each char is already in normal flow, just invisible), rather than the
+   container's height changing as text streams in alongside the panel's own
+   open transition. */
+const aboutText = "CoversFlow is a technical SEO and AI-search practice for restaurants and hospitality, run by someone who worked the floor for twenty years before doing this full time. We fix the plumbing — schema, speed, Google Business Profile — so guests find the room, not just the website.";
+const aboutChars = aboutText.split('');
 ---
 
 <section class="quickstart">
@@ -106,6 +115,13 @@ import { plans, plansNote } from '../data/plans';
 
         <p class="qs-error" data-qs-error hidden>Something went wrong sending that. Try again, or email us directly.</p>
        </div>
+
+       <p class="quickstart__about">
+         <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
+           {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
+         </span>
+         <span class="quickstart__about-sr">{aboutText}</span>
+       </p>
       </div>
     </div>
    </div>
@@ -123,6 +139,8 @@ import { plans, plansNote } from '../data/plans';
     if (!root) return;
 
     const surface = root.querySelector<HTMLElement>('[data-qs-surface]')!;
+    const typewriter = root.querySelector<HTMLElement>('[data-qs-typewriter]')!;
+    const caret = root.querySelector<HTMLElement>('[data-qs-caret]')!;
     const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
     const grow = root.querySelector<HTMLElement>('[data-qs-grow]')!;
     const panel = root.querySelector<HTMLElement>('[data-qs-panel]')!;
@@ -167,12 +185,55 @@ import { plans, plansNote } from '../data/plans';
          invisible. */
       surface.classList.toggle('quickstart__surface--open', v);
       toggle.inert = v;
+      if (v) typeAbout();
     };
 
     toggle.addEventListener('click', () => {
       const isOpen = toggle.getAttribute('aria-expanded') === 'true';
       setOpen(!isOpen);
     });
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let hasTyped = false;
+
+    /* Reveals the about paragraph's pre-split character spans in sequence
+       over ~1s total, timed by elapsed time via rAF (not setInterval —
+       per-character delay here is ~3-4ms, well under what setInterval can
+       reliably hit, especially in a background tab) rather than streaming
+       text into textContent, which would change the paragraph's wrapped
+       height mid-animation, fighting the panel's own open transition. */
+    const typeAbout = () => {
+      if (hasTyped) return;
+      hasTyped = true;
+
+      const chars = Array.from(typewriter.querySelectorAll<HTMLElement>('.qs-char'));
+      if (reduceMotion.matches || chars.length === 0) {
+        chars.forEach((c) => c.classList.add('is-visible'));
+        return;
+      }
+
+      const DURATION = 1000;
+      const perChar = DURATION / chars.length;
+      caret.classList.add('is-typing');
+      let shown = 0;
+      let start: number | null = null;
+
+      const tick = (now: number) => {
+        if (start === null) start = now;
+        const elapsed = now - start;
+        const target = Math.min(chars.length, Math.floor(elapsed / perChar));
+        while (shown < target) {
+          chars[shown].classList.add('is-visible');
+          shown++;
+        }
+        if (shown < chars.length) {
+          requestAnimationFrame(tick);
+        } else {
+          caret.classList.remove('is-typing');
+        }
+      };
+      requestAnimationFrame(tick);
+    };
 
     let resizeT: ReturnType<typeof setTimeout>;
 
@@ -386,6 +447,53 @@ import { plans, plansNote } from '../data/plans';
   .quickstart__box:hover { background: var(--paper); }
   .quickstart__panel:not([data-step='gate']) .quickstart__box { background: var(--paper); }
 
+  /* Same mono face OperatorStrip uses for its company names, typed in
+     letter-by-letter under the gate box (see the typewriter script). */
+  .quickstart__about {
+    max-width: 640px;
+    margin: var(--s-5) auto 0;
+    padding: 0 var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    line-height: 1.6;
+    color: var(--ink-2);
+    text-align: left;
+  }
+  .qs-char {
+    opacity: 0;
+    transition: opacity 90ms linear;
+  }
+  .qs-char.is-visible { opacity: 1; }
+
+  .quickstart__caret {
+    display: none;
+    border-left: 1px solid var(--rust);
+    margin-left: 1px;
+  }
+  .quickstart__caret.is-typing {
+    display: inline;
+    animation: caret-blink 0.8s step-end infinite;
+  }
+  @keyframes caret-blink {
+    50% { opacity: 0; }
+  }
+
+  /* Standard visually-hidden pattern: the real text for screen readers,
+     since the character spans above are aria-hidden (announcing ~270
+     individual single-character spans reads poorly). No shared .sr-only
+     utility exists elsewhere in this codebase, so it's scoped here. */
+  .quickstart__about-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .qs-step {
     display: none;
     text-align: left;
@@ -531,5 +639,7 @@ import { plans, plansNote } from '../data/plans';
 
   @media (prefers-reduced-motion: reduce) {
     .quickstart__grow, .quickstart__box, .quickstart__surface, .quickstart__toggle { transition-duration: .01ms; }
+    .qs-char { transition-duration: .01ms; }
+    .quickstart__caret.is-typing { animation: none; }
   }
 </style>
