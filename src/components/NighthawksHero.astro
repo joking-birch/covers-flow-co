@@ -264,11 +264,19 @@ const css = spaces.map(p => `
     inset: -20px -24px;
     border-radius: 14px; /* intentionally softer than the site's poster-squared --radius-sm/md — the one soft shape in this hero */
     overflow: hidden;
-    border: 1px dashed color-mix(in srgb, var(--cream) 35%, transparent);
-    background: rgb(22 40 60 / .34);
-    backdrop-filter: blur(14px) saturate(1.15);
-    -webkit-backdrop-filter: blur(14px) saturate(1.15);
-    box-shadow: 0 18px 40px rgb(0 0 0 / .35);
+    /* Current-gen iOS glass: a thin solid rim (not dashed — the dashed
+       language elsewhere in this hero reads as blueprint/schematic, not
+       glass) plus an inset specular highlight along the top edge, as if
+       catching light. Background tint stays very light so the blurred
+       painting underneath remains the dominant color, not the panel fill. */
+    border: 1px solid color-mix(in srgb, var(--cream) 22%, transparent);
+    background: rgb(22 40 60 / .14);
+    backdrop-filter: blur(20px) saturate(1.4) brightness(.95);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4) brightness(.95);
+    box-shadow:
+      0 18px 40px rgb(0 0 0 / .35),
+      inset 0 1px 0 rgb(255 255 255 / .22),
+      inset 0 0 0 1px rgb(255 255 255 / .05);
     transition: opacity .35s ease, transform var(--dur) ease;
     transform: translate3d(
       calc(var(--mx, 0) * 6px),
