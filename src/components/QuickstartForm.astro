@@ -498,7 +498,11 @@ const aboutChars = aboutText.split('');
     font-family: var(--font-mono);
     font-size: var(--step--1);
     line-height: 1.6;
-    color: var(--ink-2);
+    /* --ink, not --ink-2 — bumped up from the site's usual secondary-text
+       tone (8.1:1 on paper) to full-contrast ink (14.8:1), since this is
+       meant to be read as the prominent, deliberate statement it's now
+       given room for, not captioning. */
+    color: var(--ink);
     text-align: left;
   }
   .qs-char {

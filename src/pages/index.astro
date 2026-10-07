@@ -14,17 +14,20 @@ const description = 'Technical SEO, Google Business Profile, and AI-search visib
 
 const steps = [
   {
-    n: '01',
+    // Scope/target mark — looking closely before touching anything.
+    icon: '<circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3.2" />',
     title: 'Walk the floor',
     body: 'We sit in your seat first: search results, maps, reviews, the menu online versus the one on the table. A full audit of what a hungry stranger actually sees before they ever call.',
   },
   {
-    n: '02',
+    // Checkmark — work resolved.
+    icon: '<path d="M5 12.5 9.5 17 19 7" />',
     title: "Fix what's broken",
     body: "Schema, speed, listings, the pages that should exist and don't. The unglamorous plumbing work, done once, done right.",
   },
   {
-    n: '03',
+    // Simple light mark — "keep the lights on," also echoes --lamp (the diner's lit ceiling) elsewhere on this page.
+    icon: '<circle cx="12" cy="12" r="5" /><line x1="12" y1="2" x2="12" y2="5.5" /><line x1="12" y1="18.5" x2="12" y2="22" /><line x1="2" y1="12" x2="5.5" y2="12" /><line x1="18.5" y1="12" x2="22" y2="12" />',
     title: 'Keep the lights on',
     body: 'Rankings move. Somebody opens across the street. We watch the map, adjust the work, and report in plain language.',
   },
@@ -101,7 +104,7 @@ const faqSchema = {
     <ol class="steps__grid">
       {steps.map((s) => (
         <li class="step">
-          <span class="step__n">{s.n}</span>
+          <svg class="step__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" set:html={s.icon} />
           <span class="step__title">{s.title}</span>
           <span class="step__body">{s.body}</span>
         </li>
@@ -240,22 +243,50 @@ const faqSchema = {
   }
   @media (max-width: 900px) { .steps__grid { grid-template-columns: 1fr; } }
 
-  .step { display: flex; flex-direction: column; }
-  .step__n {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: .1em;
-    color: var(--ochre);
-    margin-bottom: var(--s-2);
+  /* Idle: plain white card, barely there (just a hairline edge). Hover:
+     rust fill (the site's one established "active" accent — every button
+     already does this same rust-fill-on-hover), a diner-glass green
+     border (the painting's own window-glass teal, already used elsewhere
+     for edge accents — see tokens.css), and every piece of text inside
+     flips to paper ("white") together. */
+  .step {
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-5);
+    background: var(--paper);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-sm);
+    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   }
+  .step:hover {
+    background: var(--rust);
+    border-color: var(--diner-glass);
+  }
+  .step__icon {
+    width: 28px;
+    height: 28px;
+    color: var(--ochre);
+    margin-bottom: var(--s-3);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .step:hover .step__icon { color: var(--paper); }
   .step__title {
     font-family: var(--font-display);
     font-weight: 500;
     font-size: var(--step-1);
     letter-spacing: var(--tracking-tight);
     margin-bottom: var(--s-2);
+    color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
   }
-  .step__body { font-size: var(--step--1); color: var(--ink-2); line-height: 1.5; }
+  .step:hover .step__title { color: var(--paper); }
+  .step__body {
+    font-size: var(--step--1);
+    color: var(--ink-2);
+    line-height: 1.5;
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .step:hover .step__body { color: var(--paper); }
 
   /* ── FAQ ─────────────────────────────────────────────────────── */
   .faq {
