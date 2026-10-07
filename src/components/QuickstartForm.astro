@@ -1,13 +1,10 @@
 ---
 import { plans, plansNote } from '../data/plans';
 
-/* Typed out letter-by-letter in the idle state, in the gap between the
-   quickstart surface and OperatorStrip below (see the typewriter script) —
-   split into one span per character so the paragraph's final wrapped
-   height is correct and stable from the start (each char is already in
-   normal flow, just invisible), rather than the container's height
-   changing as text streams in. Hidden entirely once Get Started is
-   clicked — see .quickstart__about-grow. */
+/* Typed out letter-by-letter in the gap between the quickstart surface and
+   OperatorStrip below (see the typewriter script), independent of the
+   Get Started flow entirely — it shows up on scroll whether or not the
+   button has been pressed, and lives only here, never inside the box. */
 const aboutText = "CoversFlow is a technical SEO and AI-search practice for restaurants and hospitality, run by someone who worked the floor for twenty years before doing this full time. We fix the plumbing — schema, speed, Google Business Profile — so guests find the room, not just the website.";
 const aboutChars = aboutText.split('');
 ---
@@ -121,22 +118,19 @@ const aboutChars = aboutText.split('');
    </div>
 
    <!-- Independent of the surface above: lives in the plain white gap
-        between it and OperatorStrip, visible only in the idle (unclicked)
-        state. Scroll is arrested (lenis.stop()) the moment the hero clears
-        and a GSAP tween reveals the paragraph over ~2.5s, then releases
-        (lenis.start()) — generous padding (see .quickstart__about) gives
-        it a deliberately prominent, centered place in that gap rather
-        than a thin line of text. Collapses away entirely (zero leftover
-        space) the moment Get Started is clicked, whatever point the
-        reveal had reached — never appears inside the box/panel itself. -->
-   <div class="quickstart__about-grow" data-qs-about-grow>
-     <p class="quickstart__about">
-       <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
-         {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
-       </span>
-       <span class="quickstart__about-sr">{aboutText}</span>
-     </p>
-   </div>
+        between it and OperatorStrip. Scroll is arrested (lenis.stop()) the
+        moment the hero clears and a GSAP tween reveals the paragraph over
+        ~2.5s, then releases (lenis.start()) — generous padding gives it a
+        deliberately prominent, centered place in that gap rather than a
+        thin line of text. Shows up on scroll regardless of whether Get
+        Started has been pressed, and never appears inside the box/panel
+        itself. -->
+   <p class="quickstart__about">
+     <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
+       {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
+     </span>
+     <span class="quickstart__about-sr">{aboutText}</span>
+   </p>
   </div>
 </section>
 
@@ -171,7 +165,6 @@ const aboutChars = aboutText.split('');
     if (lenis) lenis.on('scroll', ScrollTrigger.update);
 
     const surface = root.querySelector<HTMLElement>('[data-qs-surface]')!;
-    const aboutGrow = root.querySelector<HTMLElement>('[data-qs-about-grow]')!;
     const typewriter = root.querySelector<HTMLElement>('[data-qs-typewriter]')!;
     const caret = root.querySelector<HTMLElement>('[data-qs-caret]')!;
     const toggle = root.querySelector<HTMLButtonElement>('[data-qs-toggle]')!;
@@ -209,9 +202,6 @@ const aboutChars = aboutText.split('');
       },
     };
 
-    let aboutTrigger: ScrollTrigger | null = null;
-    let aboutTimeline: gsap.core.Timeline | null = null;
-
     const setOpen = (v: boolean) => {
       toggle.setAttribute('aria-expanded', String(v));
       grow.classList.toggle('quickstart__grow--open', v);
@@ -221,24 +211,6 @@ const aboutChars = aboutText.split('');
          invisible. */
       surface.classList.toggle('quickstart__surface--open', v);
       toggle.inert = v;
-      /* The about paragraph is only ever shown in the idle state. Opening
-         the form: kills the trigger if it hasn't fired yet (clicked before
-         scrolling past the hero), and — if the timed reveal is mid-flight
-         (clicked during the ~2.5s arrest) — kills that tween and releases
-         the scroll lock immediately rather than leaving it stuck. Then the
-         block collapses away via plain CSS regardless of how far the
-         reveal had gotten. It never lives inside the box/panel itself. */
-      if (v) {
-        aboutTrigger?.kill();
-        aboutTrigger = null;
-        if (aboutTimeline) {
-          aboutTimeline.kill();
-          aboutTimeline = null;
-          caret.classList.remove('is-typing');
-          lenis?.start();
-        }
-      }
-      aboutGrow.classList.toggle('quickstart__about-grow--hidden', v);
     };
 
     toggle.addEventListener('click', () => {
@@ -255,21 +227,12 @@ const aboutChars = aboutText.split('');
        their own overlay states — proven to actually block Lenis-driven
        scroll, unlike CSS overflow:hidden alone) and run a GSAP tween over
        ~2.5s that reveals the characters, releasing the lock on completion.
-       This replaced an earlier scroll-scrubbed/pinned version: GSAP's pin
-       plugin wasn't reliably engaging against Lenis's own scroll
-       interception on real wheel/trackpad input, and its pin-spacer
-       reserved a fixed 500px of scroll distance regardless of the
-       paragraph's actual height, which read as a dead gap. Arresting
-       scroll directly sidesteps both problems — nothing needs a spacer
-       since the page genuinely isn't moving during the reveal. Nothing
-       here checks "is the form already open" — it can't be yet, nothing
-       above this point in the init order opens it; any future open
-       (click, external CTA, or the #get-started hash handler below) goes
-       through setOpen, which kills this trigger/tween and releases the
-       lock itself. */
+       Entirely independent of the Get Started flow — it shows up on
+       scroll whether or not the button has been pressed, and once shown,
+       stays shown; nothing here ever hides or interrupts it. */
     if (hero && !reduceMotion.matches && chars.length > 0) {
       const REVEAL_SECONDS = 2.5;
-      aboutTrigger = ScrollTrigger.create({
+      ScrollTrigger.create({
         trigger: hero,
         start: 'bottom top',
         once: true,
@@ -277,10 +240,9 @@ const aboutChars = aboutText.split('');
           lenis?.stop();
           caret.classList.add('is-typing');
           const progress = { n: 0 };
-          aboutTimeline = gsap.timeline({
+          gsap.timeline({
             onComplete: () => {
               caret.classList.remove('is-typing');
-              aboutTimeline = null;
               lenis?.start();
             },
           }).to(progress, {
@@ -510,31 +472,12 @@ const aboutChars = aboutText.split('');
   .quickstart__box:hover { background: var(--paper); }
   .quickstart__panel:not([data-step='gate']) .quickstart__box { background: var(--paper); }
 
-  /* Grid-row trick again: collapses this whole block away the instant the
-     form opens (see setOpen) — padding and all, so there's no leftover gap,
-     just the block itself (see .quickstart__about below for the padding
-     that gives it a prominent place while visible). */
-  .quickstart__about-grow {
-    display: grid;
-    grid-template-rows: 1fr;
-    opacity: 1;
-    transition: grid-template-rows var(--dur) var(--ease), opacity var(--dur-fast) var(--ease);
-  }
-  .quickstart__about-grow--hidden {
-    grid-template-rows: 0fr;
-    opacity: 0;
-  }
-  .quickstart__about-grow > .quickstart__about {
-    overflow: hidden;
-    min-height: 0;
-  }
-
   /* Same mono face OperatorStrip uses for its company names, typed in
      letter-by-letter in the white gap between the surface and
-     OperatorStrip — only while the form is still closed. Generous
-     top/bottom padding (not just a thin line of text) is what gives it a
-     deliberate, prominent place in that gap rather than reading as an
-     afterthought squeezed between the two gray elements. */
+     OperatorStrip. Generous top/bottom padding (not just a thin line of
+     text) is what gives it a deliberate, prominent place in that gap
+     rather than reading as an afterthought squeezed between the two gray
+     elements. Always present — independent of the Get Started flow. */
   .quickstart__about {
     max-width: 640px;
     margin: 0 auto;
@@ -544,15 +487,6 @@ const aboutChars = aboutText.split('');
     line-height: 1.6;
     color: var(--ink-2);
     text-align: left;
-    transition: padding-top var(--dur) var(--ease), padding-bottom var(--dur) var(--ease);
-  }
-  /* min-height:0 on this element (above) stops its CONTENT from forcing
-     extra height into the 0fr grid row, but padding adds its own space
-     regardless of min-height — 72px top + 72px bottom was holding the
-     "collapsed" row open at a fixed 144px. Collapse the padding too. */
-  .quickstart__about-grow--hidden .quickstart__about {
-    padding-top: 0;
-    padding-bottom: 0;
   }
   .qs-char {
     opacity: 0;
@@ -733,7 +667,7 @@ const aboutChars = aboutText.split('');
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .quickstart__grow, .quickstart__box, .quickstart__surface, .quickstart__toggle, .quickstart__about-grow, .quickstart__about { transition-duration: .01ms; }
+    .quickstart__grow, .quickstart__box, .quickstart__surface, .quickstart__toggle { transition-duration: .01ms; }
     .qs-char { transition-duration: .01ms; }
     .quickstart__caret.is-typing { animation: none; }
   }
