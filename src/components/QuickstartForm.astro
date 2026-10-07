@@ -122,21 +122,32 @@ const aboutChars = aboutText.split('');
 
    <!-- Independent of the surface above: lives in the plain white gap
         between it and OperatorStrip, visible only in the idle (unclicked)
-        state. Types in once scrolled into view, and collapses away the
-        moment Get Started is clicked, whether or not it's finished typing
-        — never appears inside the box/panel itself. -->
-   <div class="quickstart__about-grow" data-qs-about-grow>
-     <p class="quickstart__about">
-       <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
-         {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
-       </span>
-       <span class="quickstart__about-sr">{aboutText}</span>
-     </p>
+        state. data-qs-about-stage is what GSAP's ScrollTrigger pins — kept
+        separate from data-qs-about-grow (which handles the click-to-hide
+        collapse via plain CSS) so the two mechanisms never fight over the
+        same element's layout. Scroll-pinned and scrubbed once past the
+        hero; collapses away entirely the moment Get Started is clicked,
+        whatever its scroll-progress at that point — never appears inside
+        the box/panel itself. -->
+   <div class="quickstart__about-stage" data-qs-about-stage>
+    <div class="quickstart__about-grow" data-qs-about-grow>
+      <p class="quickstart__about">
+        <span class="quickstart__about-chars" data-qs-typewriter aria-hidden="true">
+          {aboutChars.map((c) => <span class="qs-char">{c}</span>)}<span class="quickstart__caret" data-qs-caret></span>
+        </span>
+        <span class="quickstart__about-sr">{aboutText}</span>
+      </p>
+    </div>
    </div>
   </div>
 </section>
 
 <script>
+  import gsap from 'gsap';
+  import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+  gsap.registerPlugin(ScrollTrigger);
+
   /* astro:page-load, not top-level: this module only executes once per
      session (ES module caching), but ClientRouter lets a visitor return to
      "/" via soft navigation. Re-binding on every page-load event (fired for
@@ -146,7 +157,23 @@ const aboutChars = aboutText.split('');
     const root = document.querySelector<HTMLElement>('.quickstart');
     if (!root) return;
 
+    /* This is the only ScrollTrigger user on the site — on a soft-nav
+       revisit the old one(s) would otherwise reference now-detached DOM
+       from the previous page-load cycle and keep reserving scroll space
+       for an element nobody can see. Clear the slate before creating a
+       fresh one below. */
+    ScrollTrigger.getAll().forEach((t) => t.kill());
+
+    /* Layout.astro's Lenis instance smooths the real document scroll (no
+       wrapper/transform virtual-scroll mode), so ScrollTrigger reading
+       native scroll position already works — this just keeps it tightly
+       synced to Lenis's own per-frame scroll events rather than whatever
+       the browser's native (sometimes throttled) scroll event delivers. */
+    const lenis = (window as any).lenis;
+    if (lenis) lenis.on('scroll', ScrollTrigger.update);
+
     const surface = root.querySelector<HTMLElement>('[data-qs-surface]')!;
+    const aboutStage = root.querySelector<HTMLElement>('[data-qs-about-stage]')!;
     const aboutGrow = root.querySelector<HTMLElement>('[data-qs-about-grow]')!;
     const typewriter = root.querySelector<HTMLElement>('[data-qs-typewriter]')!;
     const caret = root.querySelector<HTMLElement>('[data-qs-caret]')!;
@@ -185,6 +212,8 @@ const aboutChars = aboutText.split('');
       },
     };
 
+    let aboutTrigger: ScrollTrigger | null = null;
+
     const setOpen = (v: boolean) => {
       toggle.setAttribute('aria-expanded', String(v));
       grow.classList.toggle('quickstart__grow--open', v);
@@ -195,8 +224,16 @@ const aboutChars = aboutText.split('');
       surface.classList.toggle('quickstart__surface--open', v);
       toggle.inert = v;
       /* The about paragraph is only ever shown in the idle state — opening
-         the form collapses it away immediately, whether or not it's
-         finished typing. It never lives inside the box/panel itself. */
+         the form kills the scroll-pin first (so GSAP releases it and
+         cleans up its spacer/inline styles immediately, whatever the
+         scroll-scrub progress was), then collapses it away via plain CSS.
+         Killing before the class toggle avoids the two mechanisms fighting
+         over the same element's layout mid-transition. It never lives
+         inside the box/panel itself. */
+      if (v && aboutTrigger) {
+        aboutTrigger.kill();
+        aboutTrigger = null;
+      }
       aboutGrow.classList.toggle('quickstart__about-grow--hidden', v);
     };
 
@@ -206,67 +243,31 @@ const aboutChars = aboutText.split('');
     });
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let hasTyped = false;
-
-    /* Reveals the about paragraph's pre-split character spans in sequence
-       over ~1s total, timed by elapsed time via rAF (not setInterval —
-       per-character delay here is ~3-4ms, well under what setInterval can
-       reliably hit, especially in a background tab) rather than streaming
-       text into textContent, which would change the paragraph's wrapped
-       height mid-animation, fighting the panel's own open transition. */
-    const typeAbout = () => {
-      if (hasTyped) return;
-      hasTyped = true;
-
-      const chars = Array.from(typewriter.querySelectorAll<HTMLElement>('.qs-char'));
-      if (reduceMotion.matches || chars.length === 0) {
-        chars.forEach((c) => c.classList.add('is-visible'));
-        return;
-      }
-
-      const DURATION = 1000;
-      const perChar = DURATION / chars.length;
-      caret.classList.add('is-typing');
-      let shown = 0;
-      let start: number | null = null;
-
-      const tick = (now: number) => {
-        if (start === null) start = now;
-        const elapsed = now - start;
-        const target = Math.min(chars.length, Math.floor(elapsed / perChar));
-        while (shown < target) {
-          chars[shown].classList.add('is-visible');
-          shown++;
-        }
-        if (shown < chars.length) {
-          requestAnimationFrame(tick);
-        } else {
-          caret.classList.remove('is-typing');
-        }
-      };
-      requestAnimationFrame(tick);
-    };
-
-    /* Triggered by scrolling past the hero (NighthawksHero's root .hero
-       section), not by the about paragraph's own position — it's meant to
-       greet someone who scrolled on by without clicking Get Started, not
-       to fire only once they've scrolled all the way down to it. Hero is
-       the first thing on the page, so "not intersecting" here is
-       unambiguous: it only means "scrolled past," never "not reached yet."
-       Skipped entirely if the form is already open by that point — it'd
-       just get hidden immediately anyway (see setOpen), so there's no
-       reason to animate it off-screen. */
+    const chars = Array.from(typewriter.querySelectorAll<HTMLElement>('.qs-char'));
     const hero = document.querySelector<HTMLElement>('.hero');
-    if (hero) {
-      const heroObserver = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-          if (!entry.isIntersecting) {
-            if (toggle.getAttribute('aria-expanded') !== 'true') typeAbout();
-            heroObserver.disconnect();
-          }
-        }
-      }, { threshold: 0 });
-      heroObserver.observe(hero);
+
+    /* Pins the stage once its trigger (the hero) scrolls past, then ties
+       the character reveal directly to scroll position for the next 500px
+       of scrolling — scrub, not a timer, so scrolling back up un-reveals
+       it too. Nothing here checks "is the form already open" — it can't
+       be yet, nothing above this point in the init order opens it; any
+       future open (click, external CTA, or the #get-started hash handler
+       below) goes through setOpen, which kills this trigger itself. */
+    if (hero && !reduceMotion.matches && chars.length > 0) {
+      aboutTrigger = ScrollTrigger.create({
+        trigger: hero,
+        start: 'bottom top',
+        end: '+=500',
+        pin: aboutStage,
+        scrub: 0.5,
+        onUpdate: (self) => {
+          const target = Math.min(chars.length, Math.max(0, Math.round(self.progress * chars.length)));
+          chars.forEach((el, i) => el.classList.toggle('is-visible', i < target));
+          caret.classList.toggle('is-typing', self.progress > 0 && self.progress < 1);
+        },
+      });
+    } else {
+      chars.forEach((c) => c.classList.add('is-visible'));
     }
 
     let resizeT: ReturnType<typeof setTimeout>;
