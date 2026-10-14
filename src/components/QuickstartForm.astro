@@ -1,6 +1,13 @@
 ---
 import { plans, plansNote } from '../data/plans';
 
+/* standalone: used by the dedicated /get-started page, which wants just
+   the toggle button (no "Not sure where you stand?" teaser line) styled
+   as a large, attention-getting blink button rather than the homepage's
+   small inline one — everything else (steps, typewriter, hash-arrival
+   handling) is identical and fully reused as-is. */
+const { standalone = false } = Astro.props;
+
 /* Typed out letter-by-letter in the gap between the quickstart surface and
    OperatorStrip below (see the typewriter script), independent of the
    Get Started flow entirely — it shows up on scroll whether or not the
@@ -12,8 +19,18 @@ const aboutChars = aboutText.split('');
 <section class="quickstart">
   <div class="quickstart__inner">
    <div class="quickstart__surface" data-qs-surface>
-    <p class="quickstart__line">Not sure where you stand? <span class="quickstart__line-accent">Get a free website audit.</span></p>
-    <button type="button" class="quickstart__toggle" id="get-started" data-qs-toggle aria-expanded="false" aria-controls="quickstart-panel">
+    {!standalone && (
+      <p class="quickstart__line">Not sure where you stand? <span class="quickstart__line-accent">Get a free website audit.</span></p>
+    )}
+    <button
+      type="button"
+      class={`quickstart__toggle${standalone ? ' quickstart__toggle--standalone' : ''}`}
+      id="get-started"
+      data-qs-toggle
+      data-qs-blink={standalone ? true : undefined}
+      aria-expanded="false"
+      aria-controls="quickstart-panel"
+    >
       Get Started
     </button>
 
@@ -219,6 +236,33 @@ const aboutChars = aboutText.split('');
     });
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    /* The /get-started page's standalone toggle: blinks cream↔rust every
+       1s to draw the eye, pauses (freezing on whichever phase it's in)
+       while hovered/focused — CSS then shows that frozen phase's inverse
+       colors, so hovering always reads as "the opposite of its current
+       state." Marked via data-qs-blink only when standalone (see markup),
+       so the normal homepage toggle is untouched. */
+    if (toggle.hasAttribute('data-qs-blink')) {
+      if (reduceMotion.matches) {
+        toggle.dataset.blinkPhase = 'a';
+      } else {
+        let phase: 'a' | 'b' = 'a';
+        toggle.dataset.blinkPhase = phase;
+        const tick = () => {
+          phase = phase === 'a' ? 'b' : 'a';
+          toggle.dataset.blinkPhase = phase;
+        };
+        let blinkTimer = setInterval(tick, 1000);
+        const pause = () => clearInterval(blinkTimer);
+        const resume = () => { blinkTimer = setInterval(tick, 1000); };
+        toggle.addEventListener('pointerenter', pause);
+        toggle.addEventListener('pointerleave', resume);
+        toggle.addEventListener('focus', pause);
+        toggle.addEventListener('blur', resume);
+      }
+    }
+
     const chars = Array.from(typewriter.querySelectorAll<HTMLElement>('.qs-char'));
     const hero = document.querySelector<HTMLElement>('.hero');
 
@@ -231,54 +275,61 @@ const aboutChars = aboutText.split('');
     const TYPEWRITER_SESSION_KEY = 'cf-typewriter-seen';
     const alreadySeen = sessionStorage.getItem(TYPEWRITER_SESSION_KEY) === '1';
 
-    /* Once the hero scrolls past: arrest scrolling outright (the same
-       lenis.stop()/start() lock IntroLoader and SiteMenu already use for
-       their own overlay states — proven to actually block Lenis-driven
-       scroll, unlike CSS overflow:hidden alone) and run a GSAP tween over
-       ~2.5s that reveals the characters, releasing the lock on completion.
-       Entirely independent of the Get Started flow — it shows up on
-       scroll whether or not the button has been pressed, and once shown,
-       stays shown; nothing here ever hides or interrupts it. */
-    if (hero && !reduceMotion.matches && chars.length > 0 && !alreadySeen) {
-      const REVEAL_SECONDS = 2.5;
-      ScrollTrigger.create({
-        trigger: hero,
-        start: 'bottom top',
-        once: true,
-        onEnter: () => {
-          sessionStorage.setItem(TYPEWRITER_SESSION_KEY, '1');
-          lenis?.stop();
-          caret.classList.add('is-typing');
-          chars[0].before(caret); // starting position: right before the first character
-          const progress = { n: 0 };
-          let lastTarget = 0;
-          gsap.timeline({
-            onComplete: () => {
-              caret.classList.remove('is-typing');
-              lenis?.start();
-            },
-          }).to(progress, {
-            n: chars.length,
-            duration: REVEAL_SECONDS,
-            ease: 'none',
-            onUpdate: () => {
-              const target = Math.round(progress.n);
-              if (target === lastTarget) return;
-              for (let i = 0; i < chars.length; i++) chars[i].classList.toggle('is-visible', i < target);
-              /* Moves the caret itself in the DOM to sit right after the
-                 most recently revealed character — since these are normal
-                 inline spans (not absolutely positioned), this naturally
-                 tracks the current line and wraps with the text, rather
-                 than sitting fixed at the end of the full (already fully
-                 laid-out, just invisible) paragraph. Only moves on an
-                 actual target change, not every frame, so it doesn't
-                 restart the blink animation unnecessarily. */
-              chars[target - 1].after(caret);
-              lastTarget = target;
-            },
-          });
+    const REVEAL_SECONDS = 2.5;
+
+    /* Arrest scrolling outright (the same lenis.stop()/start() lock
+       IntroLoader and SiteMenu already use for their own overlay states —
+       proven to actually block Lenis-driven scroll, unlike CSS
+       overflow:hidden alone) and run a GSAP tween over ~2.5s that reveals
+       the characters, releasing the lock on completion. Entirely
+       independent of the Get Started flow — it shows up whether or not
+       the button has been pressed, and once shown, stays shown; nothing
+       here ever hides or interrupts it. Shared by both trigger paths
+       below (hero-scroll on the homepage, immediate on a heroless page). */
+    const playTypewriter = () => {
+      sessionStorage.setItem(TYPEWRITER_SESSION_KEY, '1');
+      lenis?.stop();
+      caret.classList.add('is-typing');
+      chars[0].before(caret); // starting position: right before the first character
+      const progress = { n: 0 };
+      let lastTarget = 0;
+      gsap.timeline({
+        onComplete: () => {
+          caret.classList.remove('is-typing');
+          lenis?.start();
+        },
+      }).to(progress, {
+        n: chars.length,
+        duration: REVEAL_SECONDS,
+        ease: 'none',
+        onUpdate: () => {
+          const target = Math.round(progress.n);
+          if (target === lastTarget) return;
+          for (let i = 0; i < chars.length; i++) chars[i].classList.toggle('is-visible', i < target);
+          /* Moves the caret itself in the DOM to sit right after the most
+             recently revealed character — since these are normal inline
+             spans (not absolutely positioned), this naturally tracks the
+             current line and wraps with the text, rather than sitting
+             fixed at the end of the full (already fully laid-out, just
+             invisible) paragraph. Only moves on an actual target change,
+             not every frame, so it doesn't restart the blink animation
+             unnecessarily. */
+          chars[target - 1].after(caret);
+          lastTarget = target;
         },
       });
+    };
+
+    if (!reduceMotion.matches && chars.length > 0 && !alreadySeen) {
+      if (hero) {
+        ScrollTrigger.create({ trigger: hero, start: 'bottom top', once: true, onEnter: playTypewriter });
+      } else {
+        /* No hero on this page (e.g. /get-started) — nothing to scroll
+           past, so just play on load instead. Same session-wide gate as
+           above means it still only plays once, period, no matter which
+           page a visitor sees it on first. */
+        playTypewriter();
+      }
     } else {
       chars.forEach((c) => c.classList.add('is-visible'));
     }
@@ -479,6 +530,32 @@ const aboutChars = aboutText.split('');
     color: var(--cream); /* fixed, not theme-adaptive --paper — needs to stay light against the rust fill regardless of site theme */
   }
   .quickstart__toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  /* The /get-started page's big centered button: blinks cream↔rust every
+     1s (data-blink-phase, toggled by JS — see script) to draw the eye,
+     and hovering always shows the INVERSE of whichever phase it's
+     currently in, frozen there since the script also pauses the blink
+     interval on hover/focus. --rust/--cream (not --paper) because this
+     needs to look the same regardless of the page's light/dark theme. */
+  .quickstart__toggle--standalone {
+    padding: var(--s-5) var(--s-8);
+    font-size: var(--step-1);
+    border-width: 2px;
+  }
+  .quickstart__toggle--standalone[data-blink-phase="a"] {
+    background: var(--rust); border-color: var(--rust); color: var(--cream);
+  }
+  .quickstart__toggle--standalone[data-blink-phase="b"] {
+    background: var(--cream); border-color: var(--rust); color: var(--rust);
+  }
+  .quickstart__toggle--standalone[data-blink-phase="a"]:hover,
+  .quickstart__toggle--standalone[data-blink-phase="a"]:focus-visible {
+    background: var(--cream); border-color: var(--rust); color: var(--rust);
+  }
+  .quickstart__toggle--standalone[data-blink-phase="b"]:hover,
+  .quickstart__toggle--standalone[data-blink-phase="b"]:focus-visible {
+    background: var(--rust); border-color: var(--rust); color: var(--cream);
+  }
 
   /* The button dissolves into the merging surface rather than just vanishing
      — shrinks, fades, and loses its border in step with the surface's own

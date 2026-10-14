@@ -180,14 +180,40 @@ const levels = [
             the east side. Every room is a way into the work.
           </p>
 
-          <nav class="nav">
-            {spaces.map((p, i) => (
-              <a href={`/${p.slug}`} class="nav__item" data-hi={i + 1}>
-                <span class="nav__n">{p.n}</span>
-                <span class="nav__label">{p.title}</span>
-              </a>
-            ))}
-          </nav>
+          <div class="menu-actions">
+            <a href="/" class="btn menu-actions__item">Home</a>
+            <a href="/about" class="btn menu-actions__item">About Us</a>
+            <a href="/#get-in-touch" class="btn menu-actions__item" data-ct-open>Contact Us</a>
+            <a href="/get-started" class="btn menu-actions__item">Get Started</a>
+          </div>
+
+          <div class="menu-group" data-menu-accordion>
+            <button
+              type="button"
+              class="menu-group__trigger"
+              data-menu-accordion-trigger
+              aria-expanded="false"
+              aria-controls="menu-group-panel"
+            >
+              <span>How We Get the Covers Flowing</span>
+              <span class="menu-group__chevron" aria-hidden="true"></span>
+            </button>
+            <div class="menu-group__grow" data-menu-accordion-grow>
+              <div class="menu-group__panel" id="menu-group-panel">
+                <nav class="nav">
+                  {spaces.map((p, i) => (
+                    <a href={`/${p.slug}`} class="nav__item" data-hi={i + 1}>
+                      <span class="nav__n">{p.n}</span>
+                      <span class="nav__text">
+                        <span class="nav__label">{p.title}</span>
+                        <span class="nav__byline">{p.byline}</span>
+                      </span>
+                    </a>
+                  ))}
+                </nav>
+              </div>
+            </div>
+          </div>
         </div>
 
         <p class="corner corner--l">CoversFlow · SEO for hospitality</p>
@@ -434,11 +460,58 @@ const levels = [
     margin: 18px 0 0; font-style: italic; text-align: justify;
     font-size: clamp(11px, .92vw, 14px); line-height: 1.7; color: var(--rust);
   }
-  .nav {
-    display: flex; flex-direction: column;
-    margin-top: clamp(28px, 5vh, 64px);
-    border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  /* ── Action buttons (Home / About / Contact / Get Started) ──────── */
+  /* Astro scopes <style> per component, so the sitewide .btn look (used in
+     about.astro, ContactForm.astro, etc.) isn't inherited here — this is
+     its own local copy, same border/radius/rust-fill-on-hover treatment. */
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-5);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
   }
+  .btn:hover, .btn:focus-visible { background: var(--rust); border-color: var(--rust); color: var(--cream); }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .menu-actions {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin-top: clamp(20px, 3vh, 32px);
+  }
+  .menu-actions__item { flex: 1 1 calc(50% - 5px); text-align: center; }
+
+  /* ── Six-spaces accordion ─────────────────────────────────────── */
+  .menu-group__trigger {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    width: 100%; padding: clamp(10px, 1.6vh, 16px) 0;
+    margin-top: clamp(28px, 5vh, 64px);
+    border: none; border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+    background: none; cursor: pointer; text-align: left;
+    font-family: var(--font-display); font-weight: 600;
+    font-size: clamp(14px, 1.3vw, 18px); color: var(--ink);
+    transition: color var(--dur-fast) var(--ease);
+  }
+  .menu-group__trigger:hover, .menu-group__trigger:focus-visible { color: var(--rust); }
+  .menu-group__trigger:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+  .menu-group__chevron {
+    width: 9px; height: 9px; flex-shrink: 0;
+    border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform var(--dur-fast) var(--ease);
+  }
+  .menu-group[data-expanded] .menu-group__chevron { transform: rotate(-135deg); }
+  .menu-group__grow {
+    display: grid; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--dur) var(--ease);
+  }
+  .menu-group[data-expanded] .menu-group__grow { grid-template-rows: 1fr; }
+  .menu-group__panel { overflow: hidden; }
+
+  .nav { display: flex; flex-direction: column; }
   .nav__item {
     display: grid; grid-template-columns: 34px 1fr; align-items: baseline; gap: 12px;
     padding: clamp(9px, 1.4vh, 16px) 0;
@@ -449,10 +522,12 @@ const levels = [
   .nav__item:hover, .nav__item:focus-visible { padding-left: 10px; background: rgb(168 67 30 / .05); }
   .nav__item:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
   .nav__n { font-family: var(--font-mono); font-size: 13px; letter-spacing: .2em; color: var(--ink-3); }
+  .nav__text { display: flex; flex-direction: column; gap: 2px; }
   .nav__label {
     font-size: clamp(13px, 1.15vw, 17px); letter-spacing: .16em;
     text-transform: uppercase; color: var(--ink);
   }
+  .nav__byline { font-style: italic; font-size: 11.5px; color: var(--ink-3); }
   .nav__item:hover .nav__label { color: var(--rust); }
 
   /* ── Corner captions ─────────────────────────────────────────── */
@@ -476,7 +551,8 @@ const levels = [
 
   @media (prefers-reduced-motion: reduce) {
     .rays__wide { animation: none; }
-    .sheet, .sheet__zoom, .plates, .panel, .key, .burger i { transition-duration: .01ms; }
+    .sheet, .sheet__zoom, .plates, .panel, .key, .burger i,
+    .menu-group__grow, .menu-group__chevron { transition-duration: .01ms; }
     .sheet__zoom { transform: none; filter: none; }
   }
 </style>
@@ -561,6 +637,24 @@ const levels = [
       el.addEventListener('focus', () => highlight(n));
       el.addEventListener('pointerleave', () => highlight(0));
       el.addEventListener('blur', () => highlight(0));
+    });
+
+    /* The four action buttons (Home/About Us/Contact Us/Get Started): close
+       the overlay on click so whatever they navigate to is actually
+       visible. Home/About Us/Get Started are real page navigations and
+       would get this "for free" on most soft-nav swaps, but Contact Us is
+       a same-page hash link ("/#get-in-touch" while already on "/") —
+       nothing else would ever close the menu for that case. */
+    sheet.querySelectorAll<HTMLElement>('.menu-actions__item').forEach((el) => {
+      el.addEventListener('click', () => setOpen(false));
+    });
+
+    const menuGroup = sheet.querySelector<HTMLElement>('[data-menu-accordion]');
+    const menuGroupTrigger = sheet.querySelector<HTMLButtonElement>('[data-menu-accordion-trigger]');
+    menuGroupTrigger?.addEventListener('click', () => {
+      const next = !menuGroup?.hasAttribute('data-expanded');
+      menuGroup?.toggleAttribute('data-expanded', next);
+      menuGroupTrigger.setAttribute('aria-expanded', String(next));
     });
   }
 </script>

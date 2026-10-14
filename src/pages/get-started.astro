@@ -1,0 +1,53 @@
+---
+import Layout from '../layouts/Layout.astro';
+import QuickstartForm from '../components/QuickstartForm.astro';
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: 'Get Started', item: new URL('/get-started', Astro.site).toString() },
+  ],
+};
+---
+
+<Layout
+  title="Get Started | CoversFlow"
+  description="Tell us about your restaurant and we'll follow up with next steps — a free audit, or a new website built to rank from day one."
+>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <section class="get-started-page">
+    <p class="kicker">Get Started</p>
+    <h1>Let's get your restaurant found.</h1>
+    <QuickstartForm standalone />
+  </section>
+</Layout>
+
+<style>
+  .get-started-page {
+    min-height: calc(100svh - 62px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-5);
+    padding: var(--s-6) var(--s-5);
+    text-align: center;
+  }
+  .kicker {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+  h1 {
+    margin: 0;
+    font-size: var(--step-1);
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+</style>

@@ -15,7 +15,7 @@
  */
 ---
 <div class="contact" data-ct>
-  <button type="button" class="btn" data-ct-toggle aria-expanded="false" aria-controls="contact-panel">
+  <button type="button" class="btn" id="get-in-touch" data-ct-toggle aria-expanded="false" aria-controls="contact-panel">
     Get in touch
   </button>
 
@@ -81,10 +81,32 @@
       const doneMsg = root.querySelector<HTMLElement>('[data-ct-done]')!;
       const errorMsg = root.querySelector<HTMLElement>('[data-ct-error]')!;
 
+      const setOpen = (v: boolean) => {
+        toggle.setAttribute('aria-expanded', String(v));
+        grow.classList.toggle('contact__grow--open', v);
+      };
+
       toggle.addEventListener('click', () => {
-        const willOpen = toggle.getAttribute('aria-expanded') !== 'true';
-        toggle.setAttribute('aria-expanded', String(willOpen));
-        grow.classList.toggle('contact__grow--open', willOpen);
+        setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+      });
+
+      /* Cross-page arrival: the nav menu's "Contact Us" button links to
+         "/#get-in-touch" — a navigation to this page, not a click here, so
+         the listener above never fires for that case. Unlike "#get-started"
+         (QuickstartForm.astro), this toggle's own id IS the hash target, so
+         the browser's native hash-scroll already lands here on arrival —
+         just also open the form, matching how #get-started behaves. */
+      if (location.hash === '#get-in-touch') setOpen(true);
+
+      /* Same-page case: "Contact Us" clicked from the nav menu while
+         ALREADY on the homepage is a hash-only navigation, not a real page
+         load — astro:page-load (and the hash-check above) already ran
+         before this click happens, so it's missed entirely without an
+         explicit listener. Mirrors QuickstartForm.astro's data-qs-open-audit
+         pattern: queried from the whole document, not just this root, since
+         the triggering element lives in SiteMenu.astro, outside .contact. */
+      document.querySelectorAll<HTMLElement>('[data-ct-open]').forEach((el) => {
+        el.addEventListener('click', () => setOpen(true));
       });
 
       form.addEventListener('submit', async (e) => {
