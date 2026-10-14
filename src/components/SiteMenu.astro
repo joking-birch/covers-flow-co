@@ -179,12 +179,18 @@ const levels = [
             dining floor fills the centre, and the back of house sits behind the door on
             the east side. Every room is a way into the work.
           </p>
+        </div>
 
+        {/* Independently positioned (not nested in .panel): starts centred
+           across the whole overlay, since the plan is hidden and there's
+           nothing to share the stage with yet — once the accordion opens
+           it retreats to .panel's left column as the plan expands in. */}
+        <div class="menu-controls">
           <div class="menu-actions">
             <a href="/" class="btn menu-actions__item">Home</a>
             <a href="/about" class="btn menu-actions__item">About Us</a>
             <a href="/#get-in-touch" class="btn menu-actions__item" data-ct-open>Contact Us</a>
-            <a href="/get-started" class="btn menu-actions__item">Get Started</a>
+            <a href="/get-started" class="btn menu-actions__item menu-actions__item--primary">Get Started</a>
           </div>
 
           <div class="menu-group" data-menu-accordion>
@@ -339,6 +345,10 @@ const levels = [
   }
 
   /* ── Drawings ────────────────────────────────────────────────── */
+  /* Hidden until the accordion is opened (data-plan-active on .sheet) —
+     the stage stays empty for the centred intro controls until there's
+     something to share it with. Scale doubles as the "smooth expand"
+     reveal; mx/my parallax translate is unchanged either way. */
   .plates {
     position: absolute;
     left: calc(max(3.5vw, 22px) + min(34vw, 430px) + 4vw);
@@ -346,9 +356,13 @@ const levels = [
     top: 34%; bottom: 7%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 3vmin; pointer-events: none;
-    opacity: var(--open);
-    transform: translate(calc(var(--mx) * -7px), calc(var(--my) * -5px));
+    opacity: 0;
+    transform: scale(.85) translate(calc(var(--mx) * -7px), calc(var(--my) * -5px));
     transition: transform 900ms cubic-bezier(.22, 1, .36, 1), opacity 800ms ease 200ms;
+  }
+  .sheet[data-plan-active] .plates {
+    opacity: var(--open);
+    transform: scale(1) translate(calc(var(--mx) * -7px), calc(var(--my) * -5px));
   }
   .plan { position: relative; width: 44vmin; height: 26vmin; flex: none; }
   .section { position: relative; width: 44vmin; height: 9.2vmin; flex: none; margin-top: 1vmin; }
@@ -410,10 +424,11 @@ const levels = [
   /* ── Exploded key ────────────────────────────────────────────── */
   .key {
     position: absolute; right: calc(max(3vw, 20px) + 4vmin); top: 46%;
-    pointer-events: none; opacity: calc(var(--open) * .95);
+    pointer-events: none; opacity: 0;
     transform: translate(calc(var(--mx) * -12px), calc(var(--my) * -8px));
     transition: transform 900ms cubic-bezier(.22, 1, .36, 1), opacity 800ms ease 320ms;
   }
+  .sheet[data-plan-active] .key { opacity: calc(var(--open) * .95); }
   .key i, .key span, .key p { position: absolute; }
   .key__tick { width: 0; height: 4vmin; border-left: 1px dashed rgb(168 67 30 / .4); }
   .key__tick--out { height: 8vmin; border-left-color: rgb(168 67 30 / .22); }
@@ -434,8 +449,9 @@ const levels = [
     position: absolute; right: max(3vw, 20px); top: max(12vh, 104px);
     display: flex; align-items: flex-end; gap: 18px;
     color: var(--rust); pointer-events: none;
-    opacity: calc(var(--open) * .95); transition: opacity 800ms ease 240ms;
+    opacity: 0; transition: opacity 800ms ease 240ms;
   }
+  .sheet[data-plan-active] .scale { opacity: calc(var(--open) * .95); }
   .scale__bars { display: flex; align-items: flex-end; }
   .scale__bars i { display: block; width: 34px; height: 7px; border: 1px solid var(--rust); }
   .scale__bars i:first-child { border-right: none; }
@@ -460,6 +476,21 @@ const levels = [
     margin: 18px 0 0; font-style: italic; text-align: justify;
     font-size: clamp(11px, .92vw, 14px); line-height: 1.7; color: var(--rust);
   }
+
+  /* ── Controls: centred intro, retreats left once the accordion opens ── */
+  .menu-controls {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: min(34vw, 430px);
+    transform: translate(-50%, -50%);
+    transition: left var(--dur) var(--ease), top var(--dur) var(--ease), transform var(--dur) var(--ease);
+  }
+  .sheet[data-plan-active] .menu-controls {
+    left: max(3.5vw, 22px);
+    top: calc(max(4vh, 26px) + 151px);
+    transform: translate(0, 0);
+  }
+
   /* ── Action buttons (Home / About / Contact / Get Started) ──────── */
   /* Astro scopes <style> per component, so the sitewide .btn look (used in
      about.astro, ContactForm.astro, etc.) isn't inherited here — this is
@@ -480,23 +511,54 @@ const levels = [
 
   .menu-actions {
     display: flex; flex-wrap: wrap; gap: 10px;
-    margin-top: clamp(20px, 3vh, 32px);
   }
   .menu-actions__item { flex: 1 1 calc(50% - 5px); text-align: center; }
+
+  /* "Get Started": orange at rest (not just on hover, like the other
+     three), with a rotating conic-gradient shimmer ring so it reads as
+     the primary choice at a glance. Hover inverts to the opposite
+     pairing, same "frozen inverse" logic as the /get-started page's
+     own blink button. */
+  .menu-actions__item--primary {
+    position: relative;
+    isolation: isolate;
+    background: var(--rust); border-color: var(--rust); color: var(--cream);
+  }
+  .menu-actions__item--primary:hover, .menu-actions__item--primary:focus-visible {
+    background: var(--cream); border-color: var(--rust); color: var(--rust);
+  }
+  .menu-actions__item--primary::before {
+    content: '';
+    position: absolute; inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(from 0deg, transparent 0 60deg, var(--cream) 90deg, transparent 120deg 360deg);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: menu-shimmer-rotate 2.6s linear infinite;
+    z-index: -1;
+    pointer-events: none;
+  }
+  @keyframes menu-shimmer-rotate { to { transform: rotate(360deg); } }
 
   /* ── Six-spaces accordion ─────────────────────────────────────── */
   .menu-group__trigger {
     display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    width: 100%; padding: clamp(10px, 1.6vh, 16px) 0;
+    width: 100%; padding: clamp(12px, 1.8vh, 18px) var(--s-4);
     margin-top: clamp(28px, 5vh, 64px);
-    border: none; border-top: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
-    background: none; cursor: pointer; text-align: left;
-    font-family: var(--font-display); font-weight: 600;
-    font-size: clamp(14px, 1.3vw, 18px); color: var(--ink);
-    transition: color var(--dur-fast) var(--ease);
+    border: none; border-radius: var(--radius-sm);
+    background: var(--diner-glass); cursor: pointer; text-align: left;
+    font-family: var(--font-accordion); font-weight: 700;
+    font-size: clamp(16px, 1.6vw, 21px); color: var(--cream);
+    transition: background var(--dur-fast) var(--ease);
   }
-  .menu-group__trigger:hover, .menu-group__trigger:focus-visible { color: var(--rust); }
-  .menu-group__trigger:focus-visible { outline: 2px solid var(--rust); outline-offset: -2px; }
+  .menu-group__trigger:hover, .menu-group__trigger:focus-visible {
+    background: color-mix(in srgb, var(--diner-glass) 85%, black 15%);
+  }
+  .menu-group__trigger:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+  .menu-group__trigger.is-pulsing { animation: menu-group-pulse 1s ease-in-out 5; }
+  @keyframes menu-group-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
   .menu-group__chevron {
     width: 9px; height: 9px; flex-shrink: 0;
     border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
@@ -546,14 +608,33 @@ const levels = [
   /* Drawings need room; below that, the nav carries the overlay alone. */
   @media (max-width: 900px), (max-height: 620px) {
     .plates, .key, .scale, .corner--r { display: none; }
-    .panel { width: min(88vw, 430px); }
+    /* .panel also reverts to static so .menu-controls (now a sibling, not
+       nested inside it) stacks normally below it — otherwise .panel stays
+       out-of-flow (position:absolute) while .menu-controls flows to the
+       very top of .sheet__inner and overlaps the title/lede. */
+    .panel {
+      position: static;
+      width: min(88vw, 430px);
+      margin: max(4vh, 26px) auto 0 max(3.5vw, 22px);
+    }
+    /* The plan is already hidden at this size regardless, so there's
+       nothing to centre-then-share-the-stage-with — just stack normally. */
+    .menu-controls {
+      position: static;
+      width: min(88vw, 430px);
+      margin: clamp(20px, 3vh, 32px) auto 0 max(3.5vw, 22px);
+      transform: none;
+      transition: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .rays__wide { animation: none; }
     .sheet, .sheet__zoom, .plates, .panel, .key, .burger i,
-    .menu-group__grow, .menu-group__chevron { transition-duration: .01ms; }
+    .menu-group__grow, .menu-group__chevron, .menu-controls { transition-duration: .01ms; }
     .sheet__zoom { transform: none; filter: none; }
+    .menu-group__trigger.is-pulsing { animation: none; }
+    .menu-actions__item--primary::before { animation: none; }
   }
 </style>
 
@@ -565,8 +646,16 @@ const levels = [
     const root = document.documentElement;
     let open = false;
     let hideT: ReturnType<typeof setTimeout>;
+    let pulseT: ReturnType<typeof setTimeout>;
     let raf = 0;
     const point = { x: 0, y: 0 };
+
+    /* Hoisted above setOpen so the "pulse the accordion for 5s" behavior
+       below can reach it — queried once here since, unlike `behind` in
+       setOpen, these don't change identity across a soft navigation
+       (SiteMenu itself isn't swapped, only the page content behind it). */
+    const menuGroup = sheet.querySelector<HTMLElement>('[data-menu-accordion]');
+    const menuGroupTrigger = sheet.querySelector<HTMLButtonElement>('[data-menu-accordion-trigger]');
 
     const setOpen = (v: boolean) => {
       open = v;
@@ -591,6 +680,13 @@ const levels = [
         sheet.style.visibility = 'visible';
         sheet.style.pointerEvents = 'auto';
         requestAnimationFrame(() => root.style.setProperty('--open', '1'));
+        /* Draw the eye to the accordion for the first 5s after the menu
+           opens — tied to actually opening, not raw page load, since a
+           CSS animation on mount would silently finish its window before
+           anyone ever sees it (the trigger starts hidden behind --open:0). */
+        menuGroupTrigger?.classList.add('is-pulsing');
+        clearTimeout(pulseT);
+        pulseT = setTimeout(() => menuGroupTrigger?.classList.remove('is-pulsing'), 5000);
       } else {
         root.style.setProperty('--open', '0');
         root.style.setProperty('--mx', '0');
@@ -649,12 +745,11 @@ const levels = [
       el.addEventListener('click', () => setOpen(false));
     });
 
-    const menuGroup = sheet.querySelector<HTMLElement>('[data-menu-accordion]');
-    const menuGroupTrigger = sheet.querySelector<HTMLButtonElement>('[data-menu-accordion-trigger]');
     menuGroupTrigger?.addEventListener('click', () => {
       const next = !menuGroup?.hasAttribute('data-expanded');
       menuGroup?.toggleAttribute('data-expanded', next);
       menuGroupTrigger.setAttribute('aria-expanded', String(next));
+      sheet.toggleAttribute('data-plan-active', next);
     });
   }
 </script>

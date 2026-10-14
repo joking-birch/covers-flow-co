@@ -39,6 +39,7 @@
   --font-display: "Space Grotesk", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-body:    "Inter", system-ui, sans-serif;
   --font-mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace; /* numerals, kickers */
+  --font-accordion: "Arvo", Georgia, "Times New Roman", serif; /* mid-century slab serif — the nav menu's spaces accordion, only */
 
   --step--1: 0.8125rem;  /* 13px  captions */
   --step-0:  1rem;       /* 16px  body */
