@@ -222,6 +222,15 @@ const aboutChars = aboutText.split('');
     const chars = Array.from(typewriter.querySelectorAll<HTMLElement>('.qs-char'));
     const hero = document.querySelector<HTMLElement>('.hero');
 
+    /* Plays once per browser session (sessionStorage), same mechanism as
+       IntroLoader's cf-intro-seen flag. Without this, a soft-nav round trip
+       — e.g. open a space page, click "request my free audit", land back on
+       "/" — tears down and recreates the ScrollTrigger on every page-load
+       (see the getAll().kill() above), so GSAP's own `once: true` can't
+       remember a prior play across that cycle on its own. */
+    const TYPEWRITER_SESSION_KEY = 'cf-typewriter-seen';
+    const alreadySeen = sessionStorage.getItem(TYPEWRITER_SESSION_KEY) === '1';
+
     /* Once the hero scrolls past: arrest scrolling outright (the same
        lenis.stop()/start() lock IntroLoader and SiteMenu already use for
        their own overlay states — proven to actually block Lenis-driven
@@ -230,13 +239,14 @@ const aboutChars = aboutText.split('');
        Entirely independent of the Get Started flow — it shows up on
        scroll whether or not the button has been pressed, and once shown,
        stays shown; nothing here ever hides or interrupts it. */
-    if (hero && !reduceMotion.matches && chars.length > 0) {
+    if (hero && !reduceMotion.matches && chars.length > 0 && !alreadySeen) {
       const REVEAL_SECONDS = 2.5;
       ScrollTrigger.create({
         trigger: hero,
         start: 'bottom top',
         once: true,
         onEnter: () => {
+          sessionStorage.setItem(TYPEWRITER_SESSION_KEY, '1');
           lenis?.stop();
           caret.classList.add('is-typing');
           chars[0].before(caret); // starting position: right before the first character
