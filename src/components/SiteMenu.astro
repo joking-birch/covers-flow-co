@@ -515,8 +515,9 @@ const levels = [
   .menu-actions__item { flex: 1 1 calc(50% - 5px); text-align: center; }
 
   /* "Get Started": orange at rest (not just on hover, like the other
-     three), with a rotating conic-gradient shimmer ring so it reads as
-     the primary choice at a glance. Hover inverts to the opposite
+     three), with the same chasing-light ring used on the homepage's
+     "Every space, unpacked" accordion (SpaceDetail.astro) so it reads
+     as the primary choice at a glance. Hover inverts to the opposite
      pairing, same "frozen inverse" logic as the /get-started page's
      own blink button. */
   .menu-actions__item--primary {
@@ -527,20 +528,31 @@ const levels = [
   .menu-actions__item--primary:hover, .menu-actions__item--primary:focus-visible {
     background: var(--cream); border-color: var(--rust); color: var(--rust);
   }
+  /* A bright highlight chasing around an otherwise-rust ring, not a
+     blurred glow or (per the earlier attempt) a plain rotating block —
+     the registered custom property is what lets the conic-gradient's
+     angle itself be transitioned smoothly by @keyframes, exactly like
+     SpaceDetail.astro's --detail-angle. */
+  @property --cta-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
   .menu-actions__item--primary::before {
     content: '';
-    position: absolute; inset: -2px;
+    position: absolute;
+    inset: 0;
     border-radius: inherit;
     padding: 2px;
-    background: conic-gradient(from 0deg, transparent 0 60deg, var(--cream) 90deg, transparent 120deg 360deg);
+    background: conic-gradient(from var(--cta-angle), var(--rust) 0deg, var(--ochre) 18deg, var(--lamp) 26deg, var(--ochre) 34deg, var(--rust) 55deg, var(--rust) 360deg);
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
-    animation: menu-shimmer-rotate 2.6s linear infinite;
+    animation: cta-shimmer 3.2s linear infinite;
     z-index: -1;
     pointer-events: none;
   }
-  @keyframes menu-shimmer-rotate { to { transform: rotate(360deg); } }
+  @keyframes cta-shimmer { to { --cta-angle: 360deg; } }
 
   /* ── Six-spaces accordion ─────────────────────────────────────── */
   .menu-group__trigger {
