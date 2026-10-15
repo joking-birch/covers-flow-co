@@ -237,25 +237,35 @@ const aboutChars = aboutText.split('');
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    /* The /get-started page's standalone toggle: blinks cream↔rust every
-       1s to draw the eye, pauses (freezing on whichever phase it's in)
-       while hovered/focused — CSS then shows that frozen phase's inverse
-       colors, so hovering always reads as "the opposite of its current
-       state." Marked via data-qs-blink only when standalone (see markup),
-       so the normal homepage toggle is untouched. */
+    /* The /get-started page's standalone toggle: an asymmetric "pop" — a
+       long calm rest at rust, then a quick pop to cream (with a subtle
+       scale-up, via CSS transition on [data-blink-phase]) before settling
+       back — rather than a steady, equal-time blink. Chained setTimeout
+       (not setInterval) is what makes the two phases' hold times able to
+       differ at all. Pauses (freezing on whichever phase it's in) while
+       hovered/focused — CSS then shows that frozen phase's inverse colors,
+       so hovering always reads as "the opposite of its current state."
+       Marked via data-qs-blink only when standalone (see markup), so the
+       normal homepage toggle is untouched. */
     if (toggle.hasAttribute('data-qs-blink')) {
       if (reduceMotion.matches) {
         toggle.dataset.blinkPhase = 'a';
       } else {
+        const REST_MS = 2200;
+        const POP_MS = 500;
         let phase: 'a' | 'b' = 'a';
+        let blinkTimer: ReturnType<typeof setTimeout>;
         toggle.dataset.blinkPhase = phase;
-        const tick = () => {
-          phase = phase === 'a' ? 'b' : 'a';
-          toggle.dataset.blinkPhase = phase;
+        const schedule = () => {
+          blinkTimer = setTimeout(() => {
+            phase = phase === 'a' ? 'b' : 'a';
+            toggle.dataset.blinkPhase = phase;
+            schedule();
+          }, phase === 'a' ? REST_MS : POP_MS);
         };
-        let blinkTimer = setInterval(tick, 1000);
-        const pause = () => clearInterval(blinkTimer);
-        const resume = () => { blinkTimer = setInterval(tick, 1000); };
+        schedule();
+        const pause = () => clearTimeout(blinkTimer);
+        const resume = () => schedule();
         toggle.addEventListener('pointerenter', pause);
         toggle.addEventListener('pointerleave', resume);
         toggle.addEventListener('focus', pause);
@@ -531,29 +541,45 @@ const aboutChars = aboutText.split('');
   }
   .quickstart__toggle:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
 
-  /* The /get-started page's big centered button: blinks cream↔rust every
-     1s (data-blink-phase, toggled by JS — see script) to draw the eye,
-     and hovering always shows the INVERSE of whichever phase it's
-     currently in, frozen there since the script also pauses the blink
-     interval on hover/focus. --rust/--cream (not --paper) because this
-     needs to look the same regardless of the page's light/dark theme. */
+  /* The /get-started page's big centered button: a long rest at rust,
+     then a quick pop to cream with a subtle scale-up (data-blink-phase,
+     timed asymmetrically by JS — see script) to draw the eye, and
+     hovering always shows the INVERSE of whichever phase it's currently
+     in, frozen there since the script also pauses the cycle on
+     hover/focus. --rust/--cream (not --paper) because this needs to
+     look the same regardless of the page's light/dark theme.
+
+     max-height: the base .quickstart__toggle caps at 60px for the small
+     homepage button's own collapse animation — this button's bigger
+     padding/font needs ~74px of natural height, so 60px was clipping
+     the bottom of the label and pushing the text visually off-centre. */
   .quickstart__toggle--standalone {
     padding: var(--s-5) var(--s-8);
     font-size: var(--step-1);
     border-width: 2px;
+    max-height: 100px;
+    transform: scale(1);
+    transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+      border-color var(--dur) var(--ease), transform var(--dur) var(--ease),
+      max-height var(--dur) var(--ease), opacity var(--dur-fast) var(--ease),
+      padding var(--dur) var(--ease), border-width var(--dur) var(--ease);
   }
   .quickstart__toggle--standalone[data-blink-phase="a"] {
+    transform: scale(1);
     background: var(--rust); border-color: var(--rust); color: var(--cream);
   }
   .quickstart__toggle--standalone[data-blink-phase="b"] {
+    transform: scale(1.045);
     background: var(--cream); border-color: var(--rust); color: var(--rust);
   }
   .quickstart__toggle--standalone[data-blink-phase="a"]:hover,
   .quickstart__toggle--standalone[data-blink-phase="a"]:focus-visible {
+    transform: scale(1);
     background: var(--cream); border-color: var(--rust); color: var(--rust);
   }
   .quickstart__toggle--standalone[data-blink-phase="b"]:hover,
   .quickstart__toggle--standalone[data-blink-phase="b"]:focus-visible {
+    transform: scale(1);
     background: var(--rust); border-color: var(--rust); color: var(--cream);
   }
 
