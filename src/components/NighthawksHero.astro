@@ -76,17 +76,25 @@ const css = spaces.map(p => `
   .stage[data-active="${p.id}"] .pop--${p.id} { opacity: 1; transform: scale(var(--pop-scale)); }
   .stage[data-active="${p.id}"] .pop--${p.id} .pop__clip { pointer-events: auto; }
   .stage[data-active="${p.id}"] .card--${p.id} { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .stage[data-spotlight="${p.id}"] .bubble--${p.id} {
-    animation: spotlight-pulse 2s ease-in-out infinite;
-  }
+  .stage[data-active="${p.id}"] .bubble--${p.id} { filter: none; opacity: 1; }
   .stage[data-spotlight="${p.id}"] .bubble--${p.id} .bubble__ring {
     background: var(--lamp); border-color: var(--lamp); color: var(--night); font-weight: 700;
-    animation: spotlight-glow 2s ease-in-out infinite;
+    animation: spotlight-ring-pulse 2s ease-in-out infinite, spotlight-glow 2s ease-in-out infinite;
   }
   .stage[data-spotlight="${p.id}"] .bubble--${p.id} .bubble__label {
     color: var(--lamp); font-weight: 700;
+    animation: spotlight-label-pulse 2s ease-in-out infinite;
   }
-`).join('\n');
+`).join('\n') + `
+  /* Lives here (unscoped, via is:global below), not in the regular
+     scoped <style> block — Astro appends a [data-astro-cid-*] attribute
+     to every compound selector in a scoped block, which would inflate
+     this rule's specificity past the per-id "un-blur the active one"
+     rules above and make them lose regardless of source order. Keeping
+     both in the same unscoped context keeps the specificity math
+     (0,2,0 here vs 0,3,0 above) simple and reliable. */
+  [data-active] .bubble { filter: blur(4px); opacity: .5; }
+`;
 ---
 
 <section class="hero">
@@ -179,7 +187,12 @@ const css = spaces.map(p => `
     position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
     display: flex; flex-direction: column; align-items: center; gap: 7px;
     text-decoration: none; color: var(--cream); font-family: var(--font-body);
+    filter: none; opacity: 1;
+    transition: filter var(--dur) var(--ease), opacity var(--dur) var(--ease);
   }
+  /* Blur-others-while-one-is-active lives in the unscoped is:global
+     block above (with the per-id "un-blur the active one" rules it
+     needs to lose specificity to) — see the comment there for why. */
   .bubble:focus-visible { outline: 2px solid var(--cream); outline-offset: 6px; border-radius: 4px; }
   .bubble__ring {
     position: relative; display: grid; place-items: center;
@@ -187,8 +200,12 @@ const css = spaces.map(p => `
     border: 1px dashed color-mix(in srgb, var(--cream) 60%, transparent); background: rgb(22 40 60 / .3);
     backdrop-filter: blur(3px);
     font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em;
+    /* width/height, not transform:scale() — scaling a box via transform
+       stretches its already-rasterized text layer (blurry, "cheap"
+       looking), where animating the actual box size keeps the number
+       crisp since it's genuinely laid out at each size, never stretched. */
     transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
-      color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+      color var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease), height var(--dur-fast) var(--ease);
   }
   /* Deliberate hover/focus — grows and turns bright cream, distinct from
      the ambient lamp-yellow spotlight cycle so the two read as separate
@@ -197,7 +214,7 @@ const css = spaces.map(p => `
      overlap in practice. */
   .bubble:hover .bubble__ring, .bubble:focus-visible .bubble__ring {
     background: var(--cream); border-color: var(--cream); color: var(--night);
-    transform: scale(1.3);
+    width: 49px; height: 49px;
   }
   .bubble:hover .bubble__label, .bubble:focus-visible .bubble__label {
     color: var(--cream);
@@ -218,17 +235,19 @@ const css = spaces.map(p => `
      shift — the previous version (rust border + rust text on the same
      translucent navy fill) didn't read as a clear "highlight" against
      busy painting detail behind it, particularly over the door/back-of-
-     house spot. A solid fill plus a slow pulsing scale+glow reads
-     clearly regardless of what's behind it. Split across two keyframes
-     so the whole figure (ring + label) scales together as one unit —
-     spotlight-pulse carries the scale (applied to .bubble--id, so it
-     must also restate the base translate(-50%,-50%) centering, since
-     transform is a single property) and spotlight-glow carries just the
-     ring's box-shadow, kept separate so the glow doesn't get scaled
-     twice by both the parent's and the ring's own transform. */
-  @keyframes spotlight-pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.3); }
+     house spot. A solid fill plus a slow pulse reads clearly regardless
+     of what's behind it. The ring pulses via width/height and the label
+     via font-size — not transform:scale() on a wrapping element — for
+     the same reason the hover-grow above avoids it: scaling a box
+     (rather than genuinely resizing it) stretches already-rasterized
+     text and looks blurry/"cheap" rather than crisp. */
+  @keyframes spotlight-ring-pulse {
+    0%, 100% { width: 38px; height: 38px; }
+    50% { width: 46px; height: 46px; }
+  }
+  @keyframes spotlight-label-pulse {
+    0%, 100% { font-size: 10.5px; }
+    50% { font-size: 12.5px; }
   }
   @keyframes spotlight-glow {
     0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--lamp) 55%, transparent); }
@@ -339,13 +358,13 @@ const css = spaces.map(p => `
 
   @media (prefers-reduced-motion: reduce) {
     .bubble__orbit, .pop__outline :global(*), .intro__glass::before { animation: none; }
-    .pop, .base, .card, .intro, .intro__glass { transition-duration: .01ms; }
+    .pop, .base, .card, .intro, .intro__glass, .bubble { transition-duration: .01ms; }
     .intro__glass { transform: none; }
     /* Keep the bright lamp-fill highlight itself (it's the state change
        that matters for noticing the hotspots) but drop the pulsing
-       scale/glow loop — now split across the whole figure (.bubble) and
-       the ring's own glow, see spotlight-pulse/spotlight-glow above. */
-    .bubble, .bubble__ring { animation: none !important; }
+       ring/label/glow loops — see spotlight-ring-pulse/spotlight-label-
+       pulse/spotlight-glow above. */
+    .bubble__ring, .bubble__label { animation: none !important; }
   }
   /* Below the ratio where hotspots stay legible, drop the painting to a flat
      backdrop and let the space grid below the hero carry navigation. */
