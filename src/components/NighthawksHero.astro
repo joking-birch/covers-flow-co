@@ -132,15 +132,25 @@ const css = spaces.map(p => `
         </div>
       ))}
     </div>
+  </div>
 
-    <div class="intro">
-      <div class="intro__glass" aria-hidden="true"></div>
-      <div class="intro__content">
-        <p class="intro__headline">Ranked. Reserved. Repeat.</p>
-        <p class="intro__tagline">From Search to Seated.</p>
-        <h1 class="intro__lede">CoversFlow is an SEO agency for hospitality. Six places to look, all of them in one room.</h1>
-        <p class="intro__hint">Hover a figure to look closer</p>
-      </div>
+  {/* Sibling of .stage, not a child — .stage is locked to a strict 16:9 box
+     (overflow:hidden; see the geometry contract up top), so this needs to
+     live outside it to be free to grow taller than that box once it drops
+     out of the floating-over-the-painting layout below 1200px. See the
+     "detached dock" breakpoint below. */}
+  <div class="intro">
+    <div class="intro__glass" aria-hidden="true"></div>
+    <div class="intro__content">
+      <p class="intro__headline">Ranked. Reserved. Repeat.</p>
+      <p class="intro__tagline">From Search to Seated.</p>
+      <h1 class="intro__lede">CoversFlow is your SEO agency for hospitality</h1>
+      <p class="intro__hint">Hover a figure to look closer</p>
+      <ol class="intro__nums" aria-label="Jump to a space">
+        {spaces.map(p => (
+          <li><a href={p.href} class="intro__num" data-hotspot={p.id}>{p.n}</a></li>
+        ))}
+      </ol>
     </div>
   </div>
 </section>
@@ -148,7 +158,7 @@ const css = spaces.map(p => `
 <style is:global set:html={css}></style>
 
 <style>
-  .hero { background: var(--night); }
+  .hero { background: var(--night); position: relative; }
 
   /* Locked to the painting's ratio — see geometry contract above. */
   .stage {
@@ -284,13 +294,13 @@ const css = spaces.map(p => `
     position: absolute; left: 4%; bottom: 7%; z-index: 35; pointer-events: none;
     max-width: 330px; transition: opacity .35s ease, transform var(--dur) ease;
   }
-  .stage[data-active] .intro { opacity: 0; transform: translateY(10px); }
+  .stage[data-active] ~ .intro { opacity: 0; transform: translateY(10px); }
   /* Visually this is the big poster line, but "Ranked. Reserved. Repeat."
      carries no searchable keywords — the actual <h1> below is the sentence
      that describes what CoversFlow does, kept at body-copy size. Tag and
      visual size are deliberately decoupled here for SEO; see intro__lede. */
   .intro .intro__headline {
-    margin: 0 0 10px; font-family: var(--font-display); font-size: var(--step-4);
+    margin: 0 0 10px; font-family: var(--font-display); font-size: calc(var(--step-4) * .9);
     line-height: 1.02; letter-spacing: var(--tracking-tight); max-width: 9ch;
     color: var(--cream); text-shadow: 0 2px 24px rgb(0 0 0 / .85);
   }
@@ -300,13 +310,74 @@ const css = spaces.map(p => `
     color: var(--cream-2); text-shadow: 0 1px 14px rgb(0 0 0 / .9);
   }
   /* Comes after (and repeats the .intro ancestor) so it outweighs .intro p's
-     specificity above — otherwise that rule's color wins the cascade. */
+     specificity above — otherwise that rule's color wins the cascade. Same
+     "block lettering" treatment as SiteMenu's ONE ROOM panel__title
+     (transparent fill, stroked outline) at every width, not just the
+     detached dock state below — the solid-rust fill it used to have read
+     as too faint against the painting to be legible. */
   .intro .intro__tagline {
-    margin: 0 0 10px; font-family: var(--font-display); font-weight: 500;
-    font-size: var(--step-1); letter-spacing: var(--tracking-tight);
-    color: var(--rust); text-shadow: 0 2px 20px rgb(0 0 0 / .85);
+    margin: 0 0 10px; font-family: var(--font-display); font-weight: 700;
+    font-size: var(--step-2); letter-spacing: .03em;
+    color: transparent; -webkit-text-stroke: 1.4px var(--rust);
+    /* filter:drop-shadow, not text-shadow — it rasterizes against the
+       glyphs' actual painted alpha (stroke included), so it hugs the
+       OUTSIDE of each letterform rather than a flat offset blur behind the
+       bounding box. Two passes: a near-opaque tight one for a crisp edge
+       against the painting's own colour, a wider soft one that darkens the
+       general area behind the word so it reads as a block even over busy
+       detail. This was the actual fix for "illegible over the photo" —
+       the earlier thin stroke alone wasn't enough contrast on its own. */
+    filter:
+      drop-shadow(0 1px 1.5px rgb(0 0 0 / .9))
+      drop-shadow(0 0 10px rgb(0 0 0 / .7));
   }
-  .intro__hint { font-size: 11.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase; color: var(--ochre); }
+  /* Shimmering slab-serif caption — the plain mono label it replaced read as
+     an afterthought next to the poster-weight headline/tagline above it.
+     Arvo (the accordion panel's "mid-century slab serif") plus an animated
+     gradient sweep gives it its own presence instead of disappearing. */
+  .intro__hint {
+    font-family: var(--font-accordion); font-weight: 700;
+    font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase;
+    background: linear-gradient(90deg, var(--ochre) 0%, var(--lamp) 50%, var(--ochre) 100%);
+    background-size: 220% 100%;
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: transparent;
+    animation: hint-shimmer 3s linear infinite;
+  }
+  @keyframes hint-shimmer {
+    from { background-position: 0% 0; }
+    to { background-position: -220% 0; }
+  }
+
+  /* Numbered jump-links mirroring the bubble__ring badges on the painting
+     itself — same data-hotspot hook, so hovering/focusing one triggers the
+     identical cutout + card reveal (see the script's shared, document-wide
+     query for [data-hotspot], not just inside .stage). A second way in once
+     the glass panel isn't sitting right next to the figures anymore. */
+  /* Full width of the box, evenly spaced, not clustered at one end — and
+     sized to match .bubble__ring (38px) rather than the original 26px,
+     which was fiddly to keep the pointer on and made the row feel twitchy
+     to use. */
+  .intro__nums {
+    display: flex; justify-content: space-between; width: 100%;
+    gap: 6px; margin: 14px 0 0; padding: 0; list-style: none;
+    pointer-events: auto;
+  }
+  .intro__num {
+    display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 50%;
+    border: 1px dashed color-mix(in srgb, var(--cream) 55%, transparent);
+    background: rgb(22 40 60 / .3);
+    font-family: var(--font-mono); font-size: 11px; letter-spacing: .04em;
+    color: var(--cream-2); text-decoration: none;
+    transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease),
+      color var(--dur-fast) var(--ease), width var(--dur-fast) var(--ease), height var(--dur-fast) var(--ease);
+  }
+  .intro__num:hover, .intro__num:focus-visible {
+    background: var(--cream); border-color: var(--cream); color: var(--night);
+    width: 44px; height: 44px;
+  }
+  .intro__num:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
 
   .intro__content { position: relative; z-index: 2; }
 
@@ -357,21 +428,54 @@ const css = spaces.map(p => `
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .bubble__orbit, .pop__outline :global(*), .intro__glass::before { animation: none; }
+    .bubble__orbit, .pop__outline :global(*), .intro__glass::before, .intro__hint { animation: none; }
     .pop, .base, .card, .intro, .intro__glass, .bubble { transition-duration: .01ms; }
     .intro__glass { transform: none; }
+    .intro__hint { background-position: 0 0; }
     /* Keep the bright lamp-fill highlight itself (it's the state change
        that matters for noticing the hotspots) but drop the pulsing
        ring/label/glow loops — see spotlight-ring-pulse/spotlight-label-
        pulse/spotlight-glow above. */
     .bubble__ring, .bubble__label { animation: none !important; }
   }
+  /* Between 781–1200px the stage narrows enough that the floating glass
+     panel (fixed at 330px wide, pinned bottom-left) starts covering the
+     Competitive Gaps cutout. Hotspots stay fully interactive here (unlike
+     the 780px breakpoint below) — only the panel itself detaches from the
+     painting and drops into normal flow underneath .stage as its own
+     "dock", pushing the next section (QuickstartForm) down rather than
+     overlapping anything. */
+  @media (max-width: 1200px) {
+    .intro {
+      position: relative; inset: auto; left: auto; bottom: auto; top: auto;
+      max-width: 560px; margin: var(--s-7) auto; padding: var(--s-6) var(--s-7);
+      pointer-events: auto;
+    }
+    /* No longer sits over the painting, so there's no reason for it to fade
+       out while a hotspot is active — that behaviour only made sense when
+       the two visually competed for the same space. */
+    .stage[data-active] ~ .intro { opacity: 1; transform: none; }
+    .intro .intro__headline { font-size: clamp(29px, 3.8vw, 40px); }
+    /* Stroke/drop-shadow treatment itself now lives in the base
+       .intro__tagline rule (applies at every width) — this just scales it
+       up for the bigger, freestanding panel. Floor matches the base
+       --step-2 size (28px) rather than dropping below it, so the dock
+       state is never smaller than the floating desktop one it replaces. */
+    .intro .intro__tagline {
+      font-size: clamp(28px, 3.4vw, 36px);
+      -webkit-text-stroke-width: 1.6px;
+    }
+  }
   /* Below the ratio where hotspots stay legible, drop the painting to a flat
      backdrop and let the space grid below the hero carry navigation. */
   @media (max-width: 780px), (hover: none) {
     .bubbles, .cards, .pop { display: none; }
-    .intro { position: static; padding: var(--s-6) var(--s-5); max-width: 40ch; }
+    .intro { position: static; padding: var(--s-6) var(--s-5); max-width: 40ch; margin: 0; }
     .intro__glass { display: none; }
+    .intro__nums { display: none; }
+    /* Nothing left to hover at this width — the hint instructing visitors
+       to do so would be actively misleading, not just redundant. */
+    .intro__hint { display: none; }
   }
 </style>
 
@@ -427,8 +531,11 @@ const css = spaces.map(p => `
     };
     const linger = () => { cancel(); timer = setTimeout(() => set(null), LINGER_MS); };
 
-    stage.querySelectorAll('[data-hotspot]').forEach((el) => {
-      const id = el.dataset.hotspot;
+    /* document-wide, not stage-scoped: the .intro__nums jump-links now live
+       outside .stage (see the markup comment above), so binding only within
+       stage would miss them. */
+    document.querySelectorAll('[data-hotspot]').forEach((el) => {
+      const id = (el as HTMLElement).dataset.hotspot;
       el.addEventListener('pointerenter', () => set(id));
       el.addEventListener('focus', () => set(id));
       el.addEventListener('pointerleave', linger);
