@@ -190,6 +190,7 @@ const levels = [
             <a href="/" class="btn menu-actions__item">Home</a>
             <a href="/about" class="btn menu-actions__item">About Us</a>
             <a href="/#get-in-touch" class="btn menu-actions__item" data-ct-open>Contact Us</a>
+            <a href="/blog" class="btn menu-actions__item">Blog</a>
             <a href="/get-started" class="btn menu-actions__item menu-actions__item--primary">Get Started</a>
           </div>
 
@@ -513,6 +514,10 @@ const levels = [
     display: flex; flex-wrap: wrap; gap: 10px;
   }
   .menu-actions__item { flex: 1 1 calc(50% - 5px); text-align: center; }
+  /* Five items in a two-up grid leaves a lone trailing item (Get Started)
+     stranded at half-width with an empty gap beside it — span it full
+     width instead, which also gives the primary CTA its own emphasized row. */
+  .menu-actions__item:last-child:nth-child(odd) { flex-basis: 100%; }
 
   /* "Get Started": orange at rest (not just on hover, like the other
      three), with the same chasing-light ring used on the homepage's

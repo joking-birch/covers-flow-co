@@ -1,0 +1,172 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+import { spaces } from '../../data/spaces';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+
+const relatedSpace = post.data.space ? spaces.find((s) => s.slug === post.data.space) : undefined;
+
+const formattedDate = post.data.publishDate.toLocaleDateString('en-US', {
+  month: 'long', day: 'numeric', year: 'numeric',
+});
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).toString() },
+    { '@type': 'ListItem', position: 2, name: 'Blog', item: new URL('/blog', Astro.site).toString() },
+    { '@type': 'ListItem', position: 3, name: post.data.title, item: new URL(`/blog/${post.id}`, Astro.site).toString() },
+  ],
+};
+
+const articleSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: post.data.title,
+  description: post.data.description,
+  datePublished: post.data.publishDate.toISOString(),
+  author: { '@type': 'Organization', name: 'CoversFlow' },
+  publisher: { '@type': 'Organization', name: 'CoversFlow', url: Astro.site?.toString() },
+};
+---
+
+<Layout title={`${post.data.title} | CoversFlow Blog`} description={post.data.description}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(articleSchema)} />
+
+  <article class="post">
+    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+    <p class="kicker">Blog</p>
+    <h1>{post.data.title}</h1>
+    <p class="post__meta">{formattedDate}</p>
+
+    <div class="post__body">
+      <Content />
+    </div>
+
+    <div class="post__cta">
+      {relatedSpace && (
+        <p class="post__cta-line">
+          This is part of <a href={`/${relatedSpace.slug}`}>{relatedSpace.title}</a> — want a plain read on where you stand?
+        </p>
+      )}
+      <a class="btn" href="/#get-started" data-qs-open-audit>Get my free audit</a>
+    </div>
+  </article>
+
+  <p class="back-wrap"><a href="/blog" class="back">← Back to the blog</a></p>
+</Layout>
+
+<style>
+  .post {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: var(--s-8) var(--s-5);
+  }
+  .kicker {
+    margin: 0 0 var(--s-2);
+    font-family: var(--font-mono);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--ochre);
+  }
+  h1 { margin: 0 0 var(--s-3); font-size: var(--step-3); }
+  .post__meta {
+    margin: 0 0 var(--s-6);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: .04em;
+    color: var(--ink-3);
+  }
+
+  /* Rendered Markdown body — Astro ships no default styling for this,
+     so every element the posts actually use gets a rule here. */
+  .post__body { font-size: var(--step-0); color: var(--ink-2); line-height: 1.65; }
+  .post__body :global(h2) {
+    margin: var(--s-7) 0 var(--s-3);
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+  }
+  .post__body :global(h2:first-child) { margin-top: 0; }
+  .post__body :global(p) { margin: 0 0 var(--s-4); }
+  .post__body :global(ul), .post__body :global(ol) {
+    margin: 0 0 var(--s-4);
+    padding-left: 1.3em;
+  }
+  .post__body :global(li) { margin-bottom: var(--s-2); }
+  .post__body :global(li:last-child) { margin-bottom: 0; }
+  .post__body :global(strong) { color: var(--ink); font-weight: 600; }
+  .post__body :global(em) { font-style: italic; color: var(--ink); }
+  .post__body :global(a) { color: var(--rust); text-decoration: underline; text-underline-offset: 3px; }
+  .post__body :global(a:hover) { text-decoration-thickness: 2px; }
+  .post__body :global(code) {
+    font-family: var(--font-mono);
+    font-size: .88em;
+    background: var(--paper-2);
+    padding: .15em .4em;
+    border-radius: var(--radius-sm);
+  }
+  .post__body :global(pre) {
+    margin: 0 0 var(--s-4);
+    padding: var(--s-4);
+    border: 1px solid var(--paper-3);
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .post__body :global(pre code) { background: none; padding: 0; }
+  .post__body :global(hr) {
+    margin: var(--s-7) 0;
+    border: none;
+    border-top: 1px dashed var(--paper-3);
+  }
+
+  .post__cta {
+    margin-top: var(--s-7);
+    padding-top: var(--s-6);
+    border-top: 1px dashed var(--paper-3);
+    text-align: center;
+  }
+  .post__cta-line { margin: 0 0 var(--s-4); color: var(--ink-2); font-size: var(--step--1); }
+  .post__cta-line a { color: var(--rust); }
+
+  .btn {
+    display: inline-block;
+    padding: var(--s-3) var(--s-6);
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    text-decoration: none;
+    font-family: var(--font-display);
+    font-weight: 500;
+    letter-spacing: var(--tracking-tight);
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+  }
+  .btn:hover, .btn:focus-visible {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--cream);
+  }
+  .btn:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+  .back-wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 var(--s-5) var(--s-8);
+    text-align: center;
+  }
+  .back { color: var(--rust); text-decoration: none; font-size: var(--step--1); }
+  .back:hover { text-decoration: underline; text-underline-offset: 4px; }
+</style>

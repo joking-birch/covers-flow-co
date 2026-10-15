@@ -19,10 +19,21 @@ const breadcrumbSchema = {
     { '@type': 'ListItem', position: 2, name: p.title, item: new URL(`/${p.slug}`, Astro.site).toString() },
   ],
 };
+
+const serviceSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Service',
+  name: p.title,
+  description: p.blurb,
+  serviceType: p.tags.join(', '),
+  provider: { '@type': 'Organization', name: 'CoversFlow', url: Astro.site?.toString() },
+  areaServed: 'US',
+};
 ---
 
 <Layout title={p.seoTitle} description={p.seoDescription}>
   <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
+  <script type="application/ld+json" is:inline set:html={JSON.stringify(serviceSchema)} />
 
   <article class="space-page" transition:name={p.slug === 'brand-visibility' ? 'space-hero' : undefined}>
     <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>

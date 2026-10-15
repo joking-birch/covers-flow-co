@@ -171,10 +171,11 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
       },
       {
         title: 'Remove every tap between search result and seated',
-        body: "Every extra tap between a search result and a booked table is a guest who closes the tab instead of becoming a reservation, and eventually a turn. We walk the booking flow the way a guest actually would, on a phone, and strip out the friction until finding you and reserving a seat take about the same number of taps.",
+        body: "Every extra tap between a search result and a booked table is a guest who closes the tab instead of becoming a reservation, and eventually a turn. We walk the booking flow the way a guest actually would, on a phone, and strip out the friction until finding you and reserving a seat take about the same number of taps, including Reserve with Google, so someone who finds you by name or on Maps can book without ever reaching your site.",
         checklist: [
           'Booking flow walked and audited for friction and drop-off',
           'Mobile path from search result to reservation shortened',
+          'Reserve with Google (or your booking platform) connected directly to your listing',
           'Every call-to-action checked for what it actually costs a guest to use',
         ],
       },
@@ -187,6 +188,15 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
           'Each page built around the neighborhood and guest it actually serves',
         ],
       },
+      {
+        title: 'See where your traffic is actually coming from',
+        body: "Rankings and reviews don't mean anything if you can't see them turning into traffic. We set up Search Console and Analytics properly, Google Business Profile insights included, and send a plain-language read every month: where people found you, what they searched, and whether it's moving.",
+        checklist: [
+          'Search Console and Analytics set up and verified',
+          'Google Business Profile insights tracked alongside site traffic',
+          "A monthly report in plain language, not a dashboard you have to interpret yourself",
+        ],
+      },
     ],
     ctaLine: 'Want a plain read on what a guest sees first?',
     ctaLabel: 'Get my free audit',
@@ -196,7 +206,7 @@ export const spaceContent: Record<string, SpaceContentEntry> = {
     signals: [
       {
         title: 'Structure your menu so Google actually understands it',
-        body: "If your menu schema goes stale, the prix fixe you 86'd in March is still what Google shows in June. We structure your menu and recipes so search engines read them the way a guest would, the right dishes, the right prices, the right dietary tags, and keep it that way every time the kitchen changes something.",
+        body: "Most restaurant menus online are a PDF, a photo, or an embedded image, invisible to Google no matter how good the food is. If your menu schema goes stale, the prix fixe you 86'd in March is still what Google shows in June. We structure your menu and recipes so search engines read them the way a guest would, the right dishes, the right prices, the right dietary tags, and keep it that way every time the kitchen changes something.",
         checklist: [
           'Menu and recipe data structured so Google reads every dish correctly',
           'Updated the moment a dish, price, or 86 changes',
