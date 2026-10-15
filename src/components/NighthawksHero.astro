@@ -85,6 +85,17 @@ const css = spaces.map(p => `
     color: var(--lamp); font-weight: 700;
     animation: spotlight-label-pulse 2s ease-in-out infinite;
   }
+  /* Same idle spotlight cycle driving the painting's bubbles also pulses
+     the matching numbered jump-link in the panel — "in tandem" means
+     literally the same data-spotlight attribute/timer, not a second
+     independent cycle that happens to look similar. Its own (smaller)
+     growth keyframe, not spotlight-ring-pulse — .intro__nums' fixed height
+     stops the row itself from growing, but a smaller delta still reads
+     calmer within that fixed space than the bubble's full-size pulse would. */
+  .stage[data-spotlight="${p.id}"] ~ .intro .intro__num[data-hotspot="${p.id}"] {
+    background: var(--lamp); border-color: var(--lamp); color: var(--night); font-weight: 700;
+    animation: intro-num-spotlight-pulse 2s ease-in-out infinite, spotlight-glow 2s ease-in-out infinite;
+  }
 `).join('\n') + `
   /* Lives here (unscoped, via is:global below), not in the regular
      scoped <style> block — Astro appends a [data-astro-cid-*] attribute
@@ -158,13 +169,29 @@ const css = spaces.map(p => `
 <style is:global set:html={css}></style>
 
 <style>
-  .hero { background: var(--night); position: relative; }
+  /* --mx/--my/--sy live here, not on .stage: .intro__glass (the only
+     consumer) is a descendant of .hero but a SIBLING of .stage, so a value
+     written to .stage wouldn't inherit across that branch.
+
+     padding-bottom is a real, reserved buffer in normal flow — not a
+     scroll-triggered push. 170px of it is the straddle itself (roughly
+     half .intro's own rendered height, so .intro lands half still over the
+     painting, half hanging into this strip); --intro-gap on top of that is
+     clear air AFTER .intro's own bottom edge, so QuickstartForm's "Not
+     sure where you stand" doesn't sit flush against the box. Scales down
+     on narrow viewports rather than staying a flat 200px everywhere. */
+  .hero {
+    background: var(--night); position: relative;
+    --intro-gap: clamp(120px, 24vw, 200px);
+    padding-bottom: calc(170px + var(--intro-gap));
+    --mx: 0; --my: 0; --sy: 0;
+  }
 
   /* Locked to the painting's ratio — see geometry contract above. */
   .stage {
     position: relative; margin: 0 auto; overflow: hidden;
     width: 100%; max-width: calc((100vh - 62px) * 16 / 9); aspect-ratio: 16 / 9;
-    --blur: 7px; --pop-scale: 1.12; --mx: 0; --my: 0; --sy: 0;
+    --blur: 7px; --pop-scale: 1.12;
   }
   .base, .pop { position: absolute; inset: 0; }
   .base :global(img), .pop :global(img) { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -291,10 +318,54 @@ const css = spaces.map(p => `
   .card__cta:hover { border-bottom-color: var(--lamp); }
 
   .intro {
-    position: absolute; left: 4%; bottom: 7%; z-index: 35; pointer-events: none;
-    max-width: 330px; transition: opacity .35s ease, transform var(--dur) ease;
+    /* Left, not centered — centered sat right on top of hotspot #3
+       (Discovery). bottom:var(--intro-gap) lands the panel straddling the
+       painting's bottom edge (the fixed 170px baked into .hero's
+       padding-bottom above is the straddle itself), with --intro-gap of
+       clear air below the panel's own bottom edge before QuickstartForm's
+       text starts. */
+    position: absolute; left: 5%; bottom: var(--intro-gap); z-index: 35; pointer-events: none;
+    max-width: 380px; padding: var(--s-5) var(--s-6);
+    transform: translateY(0);
+    transition: opacity .35s ease;
+    /* Plays once automatically on mount — no JS needed to start it, only to
+       react once it ends (script below). Both it and the full painting stay
+       visible throughout: this never leaves .hero's own box, unlike the
+       earlier scroll-linked version which docked the panel below the image
+       in document flow — by the time that had scrolled into view the hero
+       itself was gone, which defeated the point. */
+    animation: intro-enter .9s cubic-bezier(.33, 0, .2, 1) both;
   }
-  .stage[data-active] ~ .intro { opacity: 0; transform: translateY(10px); }
+  /* Settled = the one-time entrance has finished — the whole panel (not
+     just .intro__nums) becomes clickable/selectable once it's done moving. */
+  .intro.is-settled { pointer-events: auto; }
+  /* Scoped to activeSource="painting" (set in script) — hovering the
+     panel's OWN numbered links used to trigger this same fade, since both
+     wrote the same stage[data-active]. Opacity only, no transform here —
+     .intro's transform is owned by the entrance keyframes below; a second
+     source fighting over the same property would conflict with whichever
+     currently has priority. */
+  /* pointer-events: none alongside the fade — opacity:0 alone only stops
+     painting, not hit-testing. Without this, the now-invisible panel (still
+     pointer-events:auto via .is-settled, still z-index:35, above .card's 30
+     and .pop's 10) kept intercepting the mouse before it reached whichever
+     card/cutout was trying to reveal underneath it — exactly the #2/#3
+     hotspots, whose card positions now overlap the left-justified panel. */
+  .stage[data-active-source="painting"] ~ .intro { opacity: 0; pointer-events: none; }
+  /* .intro__nums opts back INTO pointer-events:auto on its own (needed so
+     the numbered links are clickable while the panel is otherwise
+     none-by-default) — that opt-in outranks the blanket none above by
+     specificity, so it has to be re-silenced explicitly here too, or the
+     (invisible) numbered-links row keeps intercepting the mouse on its own
+     even once the rest of the panel correctly gets out of the way. This is
+     exactly what was still blocking hotspot #2's card. */
+  .stage[data-active-source="painting"] ~ .intro .intro__nums { pointer-events: none; }
+  @keyframes intro-enter {
+    0%   { transform: translateY(-42vh); }
+    55%  { transform: translateY(22px); }  /* overcorrect down */
+    80%  { transform: translateY(-5px); }  /* small pop back up past rest */
+    100% { transform: translateY(0); }     /* settle exactly in place */
+  }
   /* Visually this is the big poster line, but "Ranked. Reserved. Repeat."
      carries no searchable keywords — the actual <h1> below is the sentence
      that describes what CoversFlow does, kept at body-copy size. Tag and
@@ -348,6 +419,18 @@ const css = spaces.map(p => `
     from { background-position: 0% 0; }
     to { background-position: -220% 0; }
   }
+  /* One-shot flash layered on top of the ambient shimmer the instant the
+     panel's entrance settles — a "ta-da, look here" beat timed with the
+     pop landing, not just the continuous background sweep running the
+     whole time. Triggered in script via .is-gleaming once .intro's
+     entrance animationend fires. */
+  @keyframes hint-gleam {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.9) saturate(1.3); }
+  }
+  .intro__hint.is-gleaming {
+    animation: hint-shimmer 3s linear infinite, hint-gleam .7s ease-out;
+  }
 
   /* Numbered jump-links mirroring the bubble__ring badges on the painting
      itself — same data-hotspot hook, so hovering/focusing one triggers the
@@ -359,7 +442,13 @@ const css = spaces.map(p => `
      which was fiddly to keep the pointer on and made the row feel twitchy
      to use. */
   .intro__nums {
-    display: flex; justify-content: space-between; width: 100%;
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+    /* Fixed, matching the largest any one circle ever grows to (hover or
+       spotlight pulse) — without this, a circle growing via width/height
+       grows this flex row's own height too, which reads as the whole panel
+       "breathing" in and out as the idle spotlight cycles. The panel stays
+       one constant size regardless of what any single circle is doing. */
+    height: 44px;
     gap: 6px; margin: 14px 0 0; padding: 0; list-style: none;
     pointer-events: auto;
   }
@@ -378,6 +467,13 @@ const css = spaces.map(p => `
     width: 44px; height: 44px;
   }
   .intro__num:focus-visible { outline: 2px solid var(--cream); outline-offset: 3px; }
+  /* Smaller delta than the painting's spotlight-ring-pulse (38→46) — this
+     one plays inside a fixed-height row (see .intro__nums), so a quieter
+     grow reads as a calm highlight rather than the row visibly flexing. */
+  @keyframes intro-num-spotlight-pulse {
+    0%, 100% { width: 38px; height: 38px; }
+    50% { width: 42px; height: 42px; }
+  }
 
   .intro__content { position: relative; z-index: 2; }
 
@@ -437,40 +533,21 @@ const css = spaces.map(p => `
        ring/label/glow loops — see spotlight-ring-pulse/spotlight-label-
        pulse/spotlight-glow above. */
     .bubble__ring, .bubble__label { animation: none !important; }
-  }
-  /* Between 781–1200px the stage narrows enough that the floating glass
-     panel (fixed at 330px wide, pinned bottom-left) starts covering the
-     Competitive Gaps cutout. Hotspots stay fully interactive here (unlike
-     the 780px breakpoint below) — only the panel itself detaches from the
-     painting and drops into normal flow underneath .stage as its own
-     "dock", pushing the next section (QuickstartForm) down rather than
-     overlapping anything. */
-  @media (max-width: 1200px) {
-    .intro {
-      position: relative; inset: auto; left: auto; bottom: auto; top: auto;
-      max-width: 560px; margin: var(--s-7) auto; padding: var(--s-6) var(--s-7);
-      pointer-events: auto;
-    }
-    /* No longer sits over the painting, so there's no reason for it to fade
-       out while a hotspot is active — that behaviour only made sense when
-       the two visually competed for the same space. */
-    .stage[data-active] ~ .intro { opacity: 1; transform: none; }
-    .intro .intro__headline { font-size: clamp(29px, 3.8vw, 40px); }
-    /* Stroke/drop-shadow treatment itself now lives in the base
-       .intro__tagline rule (applies at every width) — this just scales it
-       up for the bigger, freestanding panel. Floor matches the base
-       --step-2 size (28px) rather than dropping below it, so the dock
-       state is never smaller than the floating desktop one it replaces. */
-    .intro .intro__tagline {
-      font-size: clamp(28px, 3.4vw, 36px);
-      -webkit-text-stroke-width: 1.6px;
-    }
+    /* Entrance pop and the synced circle pulse are both motion reduced-
+       motion should skip — script also short-circuits straight to the
+       settled state (see astro:page-load below) rather than waiting for an
+       animationend that will never fire once this cancels the animation. */
+    .intro, .intro__num { animation: none !important; }
   }
   /* Below the ratio where hotspots stay legible, drop the painting to a flat
-     backdrop and let the space grid below the hero carry navigation. */
+     backdrop and let the space grid below the hero carry navigation. The
+     panel's own position is no longer width-gated at all (see .intro's base
+     rule and the scroll-driven entrance in script below) — this block is
+     purely about hotspot interactivity, which still doesn't make sense on
+     touch/narrow. */
   @media (max-width: 780px), (hover: none) {
     .bubbles, .cards, .pop { display: none; }
-    .intro { position: static; padding: var(--s-6) var(--s-5); max-width: 40ch; margin: 0; }
+    .intro { padding: var(--s-6) var(--s-5); max-width: 40ch; margin: 0; }
     .intro__glass { display: none; }
     .intro__nums { display: none; }
     /* Nothing left to hover at this width — the hint instructing visitors
@@ -488,6 +565,9 @@ const css = spaces.map(p => `
   document.addEventListener('astro:page-load', () => {
     const stage = document.querySelector<HTMLElement>('[data-stage]');
     if (!stage) return;
+    const hero = stage.closest<HTMLElement>('.hero');
+    if (!hero) return;
+    const intro = hero.querySelector<HTMLElement>('.intro');
 
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let inView = false;
@@ -523,21 +603,32 @@ const css = spaces.map(p => `
     const LINGER_MS = 400;
     let timer = null;
     const cancel = () => { clearTimeout(timer); timer = null; };
-    const set = (v) => {
+    const set = (v, fromIntro = false) => {
       cancel();
-      v ? stage.dataset.active = v : delete stage.dataset.active;
-      if (v) stopSpotlight();
-      else if (inView) startSpotlight();
+      if (v) {
+        stage.dataset.active = v;
+        stage.dataset.activeSource = fromIntro ? 'intro' : 'painting';
+        stopSpotlight();
+      } else {
+        delete stage.dataset.active;
+        delete stage.dataset.activeSource;
+        if (inView) startSpotlight();
+      }
     };
     const linger = () => { cancel(); timer = setTimeout(() => set(null), LINGER_MS); };
 
     /* document-wide, not stage-scoped: the .intro__nums jump-links now live
        outside .stage (see the markup comment above), so binding only within
-       stage would miss them. */
+       stage would miss them. Each element's own closest('.intro') at bind
+       time (not per-hover) marks whether it's one of the panel's own links
+       — only painting-sourced hovers fade the panel (see the CSS fade rule;
+       hovering the panel's own links used to make the panel containing them
+       disappear). */
     document.querySelectorAll('[data-hotspot]').forEach((el) => {
       const id = (el as HTMLElement).dataset.hotspot;
-      el.addEventListener('pointerenter', () => set(id));
-      el.addEventListener('focus', () => set(id));
+      const fromIntro = !!el.closest('.intro');
+      el.addEventListener('pointerenter', () => set(id, fromIntro));
+      el.addEventListener('focus', () => set(id, fromIntro));
       el.addEventListener('pointerleave', linger);
     });
     stage.querySelectorAll('.pop__clip, .card').forEach((el) => {
@@ -549,6 +640,31 @@ const css = spaces.map(p => `
       if (!stage.contains(e.relatedTarget as Node | null)) set(null);
     });
 
+    /* The panel's entrance (CSS animation, see .intro's base rule) plays
+       automatically on mount — this just reacts once it finishes: flips on
+       pointer-events, and fires a one-shot "gleam" flash on the hint text,
+       landing right as the pop settles. Under reduced motion the CSS
+       cancels that animation outright (see the media block above), so
+       there's no animationend to wait for — jump straight to the settled
+       state instead. */
+    if (intro) {
+      const settleIntro = () => {
+        intro.classList.add('is-settled');
+        const hint = intro.querySelector<HTMLElement>('.intro__hint');
+        if (hint && !reduceMotion.matches) {
+          hint.classList.add('is-gleaming');
+          hint.addEventListener('animationend', () => hint.classList.remove('is-gleaming'), { once: true });
+        }
+      };
+      if (reduceMotion.matches) {
+        settleIntro();
+      } else {
+        intro.addEventListener('animationend', (e: AnimationEvent) => {
+          if (e.target === intro && e.animationName === 'intro-enter') settleIntro();
+        });
+      }
+    }
+
     /* Only run the spotlight cycle and scroll-parallax loop while the hero
        is near/in view — cheap to gate, no reason to tick either off-screen. */
     let scrollRaf = 0;
@@ -559,7 +675,7 @@ const css = spaces.map(p => `
         const r = stage.getBoundingClientRect();
         const vh = window.innerHeight || document.documentElement.clientHeight;
         const progress = ((vh / 2) - (r.top + r.height / 2)) / (vh / 2);
-        stage.style.setProperty('--sy', progress.toFixed(3));
+        hero.style.setProperty('--sy', progress.toFixed(3));
         scrollRaf = requestAnimationFrame(tick);
       };
       scrollRaf = requestAnimationFrame(tick);
@@ -585,14 +701,14 @@ const css = spaces.map(p => `
         if (!raf) {
           raf = requestAnimationFrame(() => {
             raf = 0;
-            stage.style.setProperty('--mx', point.x.toFixed(3));
-            stage.style.setProperty('--my', point.y.toFixed(3));
+            hero.style.setProperty('--mx', point.x.toFixed(3));
+            hero.style.setProperty('--my', point.y.toFixed(3));
           });
         }
       });
       stage.addEventListener('pointerleave', () => {
-        stage.style.setProperty('--mx', '0');
-        stage.style.setProperty('--my', '0');
+        hero.style.setProperty('--mx', '0');
+        hero.style.setProperty('--my', '0');
       });
     }
   });
