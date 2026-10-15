@@ -29,7 +29,7 @@ const spaces = [
     tags: ['Keyword gap audit', 'Content teardown', 'Market share of search'],
     clip: 'inset(25% 68.5% 38% 0% round 0 8px 8px 0)',
     svg: '<rect x="-1" y="25" width="32.5" height="37" />',
-    origin: '8% 43%', bubble: { left: '12%', top: '38%' }, card: { left: '34%', top: '30%' },
+    origin: '8% 43%', bubble: { left: '12%', top: '38%' }, card: { left: '2%', bottom: '5%' },
   },
   {
     id: 'alone', n: '03', title: 'Discovery', href: '/discovery',
@@ -45,7 +45,7 @@ const spaces = [
     tags: ['Review conversations', 'Events & partnerships', 'Local link earning'],
     clip: 'ellipse(6.6% 10.5% at 70.3% 53%)',
     svg: '<ellipse cx="70.3" cy="53" rx="6.6" ry="10.5" />',
-    origin: '70.3% 53%', bubble: { left: '70.3%', top: '38%' }, card: { right: '39%', top: '30%' },
+    origin: '70.3% 53%', bubble: { left: '70.3%', top: '35%' }, card: { right: '39%', top: '30%' },
   },
   {
     id: 'counter', n: '05', title: 'Front of House', href: '/front-of-house',
@@ -61,7 +61,7 @@ const spaces = [
     tags: ['Menu & recipe schema', 'Site architecture', 'Core Web Vitals'],
     clip: 'ellipse(4.2% 18% at 93.5% 47%)',
     svg: '<ellipse cx="93.5" cy="47" rx="4.2" ry="18" />',
-    origin: '93.5% 47%', bubble: { left: '92%', top: '24%' }, card: { right: '12.5%', bottom: '7%' },
+    origin: '93.5% 47%', bubble: { left: '92%', top: '22%' }, card: { right: '12.5%', bottom: '7%' },
   },
 ];
 
@@ -256,7 +256,7 @@ const css = spaces.map(p => `
   .bubble__label {
     font-size: 10.5px; letter-spacing: var(--tracking-caps); text-transform: uppercase;
     white-space: nowrap; padding: 2px 6px; border-radius: var(--radius-sm);
-    background: rgb(22 40 60 / .6);
+    background: rgb(22 40 60 / .85);
     transition: color var(--dur-fast) var(--ease);
   }
 
