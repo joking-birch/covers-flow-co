@@ -2,12 +2,25 @@
 import Layout from '../layouts/Layout.astro';
 import { Image } from 'astro:assets';
 import painting from '../assets/nighthawks.jpg';
+import LogoReveal from '../components/LogoReveal.astro';
 
 const values = [
   "Built for the floor, by people who've worked it.",
   'White-hat only, every time. No shortcut that mortgages next year for this month.',
   'The guest experience drives the plan. The metrics follow it, not the other way around.',
 ];
+
+/* Simple stroke-based line icons, one per section — same visual language
+   as FlowMark.astro (rust stroke, rounded caps), no icon-library
+   dependency. Kept as inline strings here rather than separate files
+   since each is used exactly once. */
+const icons = {
+  painting: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="1.5"/><circle cx="8.5" cy="9.5" r="1.5"/><path d="M21 16l-5.5-5.5a1 1 0 0 0-1.4 0L7 18"/></svg>`,
+  together: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="6.5"/><circle cx="15" cy="12" r="6.5"/></svg>`,
+  work: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 6.5a4 4 0 0 1-5.4 5.4L4 17l3 3 5.1-5.1a4 4 0 0 1 5.4-5.4l-2.3 2.3-2-2 2.3-2.3Z"/></svg>`,
+  floor: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20V5a1 1 0 0 1 1-1h7l4 4v12"/><path d="M3 20h18"/><circle cx="14.5" cy="13" r=".8" fill="var(--rust)" stroke="none"/></svg>`,
+  doesntChange: `<svg viewBox="0 0 24 24" fill="none" stroke="var(--rust)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg>`,
+};
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -25,40 +38,54 @@ const breadcrumbSchema = {
 >
   <script type="application/ld+json" is:inline set:html={JSON.stringify(breadcrumbSchema)} />
 
+  {/* Full-bleed, same sizing convention as NighthawksHero.astro's .stage —
+     62px is the sticky header height, load-bearing for both. */}
+  <div class="about-hero">
+    <Image src={painting} alt="Nighthawks, Edward Hopper, 1942" widths={[960, 1440, 1920]} sizes="100vw" />
+    <div class="about-hero__glass">
+      <p class="kicker">About</p>
+      <h1>Not alone. Together.</h1>
+      <p class="lead">Edward Hopper painted a diner lit up on an empty street corner. For eighty years, people have called it a picture of loneliness. We think they're reading it backward.</p>
+    </div>
+  </div>
+  <p class="painting-cap">Edward Hopper, <em>Nighthawks</em>, 1942. Art Institute of Chicago.</p>
+
+  <LogoReveal />
+
   <article class="about">
-    <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
-    <p class="kicker">About</p>
-    <h1>Not alone. Together.</h1>
-    <p class="lead">Edward Hopper painted a diner lit up on an empty street corner. For eighty years, people have called it a picture of loneliness. We think they're reading it backward.</p>
-
-    <figure class="painting">
-      <Image src={painting} alt="Nighthawks, Edward Hopper, 1942" widths={[720, 1080, 1440]} sizes="(min-width: 760px) 720px, 100vw" />
-      <figcaption>Edward Hopper, <em>Nighthawks</em>, 1942. Art Institute of Chicago.</figcaption>
-    </figure>
-
     <section class="block">
-      <h2>The painting</h2>
+      <h2><span class="block__icon" set:html={icons.painting} />The painting</h2>
       <p><em>Nighthawks</em>, 1942. Three strangers at a counter, a counterman in white, no door back out to the street that anyone can see. Hopper never explained it, so for eighty years critics have filled in the blank for him: urban isolation, anonymity, the ache of being alone in a crowded city at night.</p>
     </section>
 
     <section class="block">
-      <h2>Together, not alone</h2>
+      <h2><span class="block__icon" set:html={icons.together} />Together, not alone</h2>
       <p>We think that reading misses what's actually happening in the painting. Nobody in that diner is there by accident. The light is on. The counterman is working. Three people who could be home instead chose to be exactly there, near other people, over a plate and a cup of coffee. That's not isolation caught on canvas. It's the opposite of it, mid-act.</p>
       <p>A diner that's survived eighty years of being called lonely keeps doing the one thing loneliness can't: it stays lit, and people keep showing up for it.</p>
+      <span class="lottie-accent" data-lottie="connecting" aria-hidden="true"></span>
     </section>
 
-    <section class="block">
-      <h2>The work</h2>
+    <section class="block block--work">
+      <h2><span class="block__icon" set:html={icons.work} />The work</h2>
       <p>That's the business we're actually in. Not rankings for their own sake, not a traffic chart nobody but you will ever open. Getting a hungry stranger off their phone, through an actual door, onto an actual stool. The technical work, schema, site speed, the Google Business Profile, the local pack, is how the light stays on long enough for someone to find it. From search to seated is the whole job.</p>
     </section>
 
     <section class="block">
-      <h2>Two decades on the floor</h2>
+      <h2><span class="block__icon" set:html={icons.floor} />Two decades on the floor</h2>
       <p>Before any of that, we spent two decades on real restaurant floors, dishwasher to manager, through service windows that didn't care what anyone's SEO plan said. We know what it costs to 86 an item at 7:40 on a Saturday and get it updated everywhere before the next turn, because we've done it ourselves. That experience is paired now with years of technical SEO work across a hundred-plus businesses in a dozen other industries. CoversFlow is those two things, finally pointed at the same problem.</p>
     </section>
+  </article>
 
+  <section class="banner">
+    <p class="banner__line">Twenty years on the floor. Now working the search results.</p>
+  </section>
+
+  <article class="about">
     <section class="block">
-      <h2>What doesn't change</h2>
+      <h2>
+        <span class="block__icon" set:html={icons.doesntChange} />What doesn't change
+        <span class="lottie-accent lottie-accent--inline" data-lottie="checkmark" aria-hidden="true"></span>
+      </h2>
       <ul class="values">
         {values.map((v) => <li>{v}</li>)}
       </ul>
@@ -74,13 +101,81 @@ const breadcrumbSchema = {
   <p class="back-wrap"><a href="/" class="back">← Back to the diner</a></p>
 </Layout>
 
+<script>
+  import lottie from 'lottie-web';
+  import checkmarkAnim from '../assets/lottie/checkmark.json';
+  import connectingAnim from '../assets/lottie/connecting-people.json';
+
+  /* Two small Lottie accents, loaded locally (not hotlinked from
+     LottieFiles' CDN — self-hosted the same way fonts are, via a bundled
+     import rather than a runtime fetch to a third party). Each plays once
+     on scroll-into-view; prefers-reduced-motion gets the static first
+     frame instead of playback. */
+  document.addEventListener('astro:page-load', () => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const animsByKey: Record<string, object> = { checkmark: checkmarkAnim, connecting: connectingAnim };
+
+    document.querySelectorAll<HTMLElement>('[data-lottie]').forEach((el) => {
+      const animationData = animsByKey[el.dataset.lottie ?? ''];
+      if (!animationData) return;
+
+      if (reduceMotion.matches) {
+        const anim = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData });
+        anim.goToAndStop(0, true);
+        return;
+      }
+
+      const io = new IntersectionObserver(([entry]) => {
+        if (!entry.isIntersecting) return;
+        lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: true, animationData });
+        io.disconnect();
+      }, { threshold: 0.4 });
+      io.observe(el);
+    });
+  });
+</script>
+
 <style>
-  .about {
-    max-width: 720px;
+  /* ── Full-bleed hero + glass title box ──────────────────────────── */
+  .about-hero {
+    position: relative;
+    width: 100%;
+    max-width: calc((100vh - 62px) * 16 / 9);
+    aspect-ratio: 16 / 9;
     margin: 0 auto;
-    padding: var(--s-8) var(--s-5) 0;
+    overflow: hidden;
   }
-  .kicker {
+  .about-hero :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .about-hero__glass {
+    position: absolute;
+    left: 4%;
+    bottom: 7%;
+    z-index: 1;
+    max-width: 420px;
+    padding: var(--s-5) var(--s-6);
+    border-radius: 14px;
+    border: 1px solid transparent;
+    /* Same gradient-border + translucent-fill recipe as NighthawksHero's
+       .intro__glass, minus the mouse/scroll parallax and ambient sheen —
+       this is a content box, not a decorative hero accent. */
+    background:
+      linear-gradient(rgb(22 40 60 / .07), rgb(22 40 60 / .07)) padding-box,
+      linear-gradient(180deg, rgb(255 255 255 / .55), rgb(255 255 255 / .05)) border-box;
+    backdrop-filter: blur(12px) saturate(1.4);
+    -webkit-backdrop-filter: blur(12px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 1px rgb(255 255 255 / .18),
+      0 10px 30px rgb(0 0 0 / .3),
+      0 2px 8px rgb(0 0 0 / .2);
+  }
+  .about-hero__glass .kicker {
     margin: 0 0 var(--s-2);
     font-family: var(--font-mono);
     font-size: var(--step--1);
@@ -88,41 +183,77 @@ const breadcrumbSchema = {
     text-transform: uppercase;
     color: var(--ochre);
   }
-  h1 { margin: 0 0 var(--s-4); font-size: var(--step-3); }
-  .lead { margin: 0 0 var(--s-6); font-size: var(--step-1); color: var(--ink-2); }
+  .about-hero__glass h1 {
+    margin: 0 0 var(--s-3);
+    font-size: var(--step-3);
+    color: var(--cream); /* fixed, not theme-adaptive --ink — sits on a surface that's always dark regardless of site theme */
+  }
+  .about-hero__glass .lead {
+    margin: 0;
+    font-size: var(--step-1);
+    color: var(--cream-2);
+  }
 
-  .painting {
-    margin: 0 0 var(--s-7);
-  }
-  .painting :global(img) {
-    width: 100%;
-    height: auto;
-    border: 1px solid var(--paper-3);
-    border-radius: var(--radius-sm);
-  }
-  .painting figcaption {
-    margin-top: var(--s-2);
+  .painting-cap {
+    max-width: 720px;
+    margin: 0 auto var(--s-7);
+    padding: var(--s-2) var(--s-5) 0;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: .04em;
     color: var(--ink-3);
+    text-align: right;
   }
-  .painting figcaption em { font-style: italic; }
+  .painting-cap em { font-style: italic; }
+
+  @media (max-width: 760px), (max-height: 620px) {
+    .about-hero { aspect-ratio: 4 / 5; max-width: 100%; }
+    .about-hero__glass { left: var(--s-5); right: var(--s-5); max-width: none; }
+  }
+
+  /* ── Content ─────────────────────────────────────────────────────── */
+  .about {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 var(--s-5);
+  }
 
   .block { margin-bottom: var(--s-7); }
   .block h2 {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
     margin: 0 0 var(--s-3);
     font-size: var(--step-2);
     letter-spacing: var(--tracking-tight);
   }
+  .block__icon { width: 1.3em; height: 1.3em; flex: none; }
   .block p {
     margin: 0 0 var(--s-3);
     font-size: var(--step-0);
     color: var(--ink-2);
     line-height: 1.6;
   }
-  .block p:last-child { margin-bottom: 0; }
+  .block p:last-of-type { margin-bottom: 0; }
   .block em { font-style: italic; color: var(--ink); }
+
+  /* "The work" section gets its own distinct pairing, scoped here only —
+     every other section keeps the site's normal Space Grotesk/Inter. */
+  .block--work h2 { font-family: var(--font-work-display); }
+  .block--work p { font-family: var(--font-work-body); }
+
+  .lottie-accent {
+    display: block;
+    width: 56px;
+    height: 56px;
+    margin-top: var(--s-3);
+  }
+  .lottie-accent--inline {
+    display: inline-block;
+    width: 32px;
+    height: 32px;
+    margin: 0 0 0 auto;
+  }
 
   .values {
     margin: 0;
@@ -150,9 +281,25 @@ const breadcrumbSchema = {
     background: var(--rust);
   }
 
+  /* ── Green banner ────────────────────────────────────────────────── */
+  .banner {
+    width: 100%;
+    padding: var(--s-6) var(--s-5);
+    background: var(--diner-glass);
+    text-align: center;
+  }
+  .banner__line {
+    margin: 0 auto;
+    max-width: 46ch;
+    color: var(--cream); /* fixed light text — diner-glass is a mid-dark teal-green regardless of site theme */
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: var(--step-1);
+  }
+
   /* ── CTA ─────────────────────────────────────────────────────── */
   .cta {
-    margin: 0 calc(-1 * var(--s-5)) 0;
+    margin: var(--s-7) calc(-1 * var(--s-5)) 0;
     padding: var(--s-7) var(--s-5);
     background: var(--paper-2);
     text-align: center;

@@ -40,6 +40,8 @@
   --font-body:    "Inter", system-ui, sans-serif;
   --font-mono:    "IBM Plex Mono", ui-monospace, Menlo, monospace; /* numerals, kickers */
   --font-accordion: "Arvo", Georgia, "Times New Roman", serif; /* mid-century slab serif — the nav menu's spaces accordion, only */
+  --font-work-display: "Space Mono", "IBM Plex Mono", monospace; /* about.astro's "The work" section heading, only */
+  --font-work-body: "Manrope", "Inter", sans-serif; /* about.astro's "The work" section body, only */
 
   --step--1: 0.8125rem;  /* 13px  captions */
   --step-0:  1rem;       /* 16px  body */

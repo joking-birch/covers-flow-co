@@ -1,0 +1,156 @@
+---
+import FlowMark from './FlowMark.astro';
+
+/**
+ * LogoReveal.astro — a large-scale version of the header wordmark (reuses
+ * FlowMark.astro's em-sized SVG as-is, just at a bigger font-size) that
+ * slides in left-to-right with a canvas particle burst the first time it
+ * scrolls into view. Plays once per page view (IntersectionObserver
+ * disconnects after firing), not gated by sessionStorage — this is a
+ * one-off brand moment on the About page, not something worth remembering
+ * across visits the way the homepage typewriter is.
+ */
+---
+
+<div class="logo-reveal" data-logo-reveal>
+  <canvas data-logo-canvas aria-hidden="true"></canvas>
+  <div class="logo-reveal__mark" data-logo-mark>
+    <span>Covers</span>
+    <FlowMark />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const root = document.querySelector<HTMLElement>('[data-logo-reveal]');
+    if (!root) return;
+
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-logo-canvas]')!;
+    const mark = root.querySelector<HTMLElement>('[data-logo-mark]')!;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    if (reduceMotion.matches) {
+      mark.classList.add('is-revealed');
+      return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const DURATION = 900;
+    let particles: { x: number; y: number; vx: number; vy: number; r: number; delay: number; color: string }[] = [];
+    let startTime = 0;
+    let raf = 0;
+
+    const resize = () => {
+      const rect = root.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = `${rect.height}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+
+    /* Resolved at runtime (not passed as CSS var()) — canvas fillStyle
+       can't consume custom-property syntax directly, and reading the
+       computed value here keeps it correct under dark mode too. */
+    const spawnParticles = () => {
+      const styles = getComputedStyle(document.documentElement);
+      const colors = [styles.getPropertyValue('--rust').trim(), styles.getPropertyValue('--ochre').trim(), styles.getPropertyValue('--lamp').trim()].filter(Boolean);
+      const rect = root.getBoundingClientRect();
+      particles = Array.from({ length: 70 }, () => ({
+        x: Math.random() * rect.width * 0.4, // biased toward the left edge, drifting right
+        y: Math.random() * rect.height,
+        vx: 0.05 + Math.random() * 0.16,
+        vy: (Math.random() - 0.5) * 0.04,
+        r: 1 + Math.random() * 2.2,
+        delay: Math.random() * 300,
+        color: colors[Math.floor(Math.random() * colors.length)] || '#A8431E',
+      }));
+    };
+
+    const tick = (t: number) => {
+      if (!startTime) startTime = t;
+      const elapsed = t - startTime;
+      const rect = root.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      let anyAlive = false;
+
+      particles.forEach((p) => {
+        const localT = elapsed - p.delay;
+        if (localT < 0) { anyAlive = true; return; }
+        const progress = Math.min(localT / DURATION, 1);
+        if (progress < 1) anyAlive = true;
+        const alpha = progress < 0.5 ? progress * 2 : (1 - progress) * 2;
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x + p.vx * localT, p.y + p.vy * localT, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+
+      if (anyAlive) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        ctx.clearRect(0, 0, rect.width, rect.height);
+      }
+    };
+
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      resize();
+      spawnParticles();
+      mark.classList.add('is-revealed');
+      startTime = 0;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+      io.disconnect();
+    }, { threshold: 0.4 });
+    io.observe(root);
+  });
+</script>
+
+<style>
+  .logo-reveal {
+    position: relative;
+    max-width: 720px;
+    margin: 0 auto var(--s-8);
+    padding: var(--s-6) var(--s-5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 140px;
+  }
+  .logo-reveal canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+  .logo-reveal__mark {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.16em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(2.5rem, 9vw, 6rem);
+    letter-spacing: var(--tracking-tight);
+    color: var(--ink);
+    opacity: 0;
+    transform: translateX(-60px);
+    transition: opacity .7s var(--ease), transform .7s var(--ease);
+  }
+  .logo-reveal__mark.is-revealed {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-reveal__mark { transition-duration: .01ms; }
+  }
+</style>
